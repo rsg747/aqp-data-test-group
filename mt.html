@@ -2977,6 +2977,7 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
 /* ============ DATA TEST GROUP — submit / lock / PPDB ============ */
 (function(){
   var PPDB_KEY="AQP_PPDB_v1";
+  var SYNC_URL="https://api.restful-api.dev/objects/ff8081819d82fab6019f5d210cc0563f", SYNC_NAME="AQP-PPDB-DTG-v1";
   var DASH_URL="AQP_Data_Dashboard.html";   // dashboard location (adjust when published)
   window.SUBMITTED=window.SUBMITTED||false; window.SUB_ID=window.SUB_ID||null;
   var isMV=(typeof SPOT_EVENTS!=="undefined");
@@ -3049,13 +3050,24 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
     try{ localStorage.setItem(PPDB_KEY, JSON.stringify(arr)); return true; }catch(e){ return false; }
   }
 
+  function cloudPush(){
+    try{
+      fetch(SYNC_URL).then(function(r){return r.json();}).then(function(j){
+        var recs=(j&&j.data&&Array.isArray(j.data.records))?j.data.records:[];
+        var have={}; recs.forEach(function(x){ if(x&&x.id) have[x.id]=1; });
+        var local=[]; try{ local=JSON.parse(localStorage.getItem(PPDB_KEY)||"[]"); }catch(e){}
+        var added=0; local.forEach(function(x){ if(x&&x.id&&!have[x.id]){ recs.push(x); have[x.id]=1; added++; } });
+        if(added>0){ fetch(SYNC_URL,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:SYNC_NAME,data:{records:recs}})}); }
+      }).catch(function(){});
+    }catch(e){}
+  }
   function doSubmit(rec){
     if(!ppdbPush(rec)){ toast("Could not write to the data store on this device."); return; }
     window.SUBMITTED=true; window.SUB_ID=rec.id;
     try{ localStorage.setItem(LOCK_KEY, JSON.stringify({id:rec.id,at:rec.submittedAt})); }catch(e){}
     if(typeof autosave==="function"){ try{autosave();}catch(e){} }
     if(typeof render==="function"){ render(); } else { updateLockUI(); }
-    toast("Submitted & locked · "+rec.id);
+    toast("Submitted & locked · "+rec.id); cloudPush();
   }
 
   window.onDataSubmit=function(){
@@ -3116,6 +3128,7 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
     if(typeof doNew==="function" && !doNew.__dt){ var _d=doNew; window.doNew=function(){ window.SUBMITTED=false; window.SUB_ID=null; try{localStorage.removeItem(LOCK_KEY);}catch(e){} return _d.apply(this,arguments); }; window.doNew.__dt=1; }
     // restore lock from this device
     try{ var lk=JSON.parse(localStorage.getItem(LOCK_KEY)||"null"); if(lk&&lk.id){ window.SUBMITTED=true; window.SUB_ID=lk.id; } }catch(e){}
+    setTimeout(cloudPush,600);
     updateLockUI();
   }
 

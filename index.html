@@ -89,7 +89,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       <select id="fCover"><option value="all">All qualification standards (195)</option><option value="inst">Currently instrumented</option><option value="data">Has data</option><option value="nodata">No data yet</option></select></div>
     <div class="ctl"><label>Data</label>
       <label class="chk"><input type="checkbox" id="fSample" checked> include sample data</label>
-      <span class="src" id="srcLine"></span></div>
+      <span class="src" id="srcLine"></span>
+      <button id="reloadBtn" style="margin-top:5px;align-self:flex-start;border:1px solid var(--pb);background:var(--pl);color:var(--purple);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer">↻ Reload live data</button></div>
   </div>
 
   <div class="kpis" id="kpis"></div>
@@ -246,6 +247,16 @@ function genSample(){
 /* ============ data load ============ */
 const PPDB_KEY="AQP_PPDB_v1";
 function loadLive(){ try{ const a=JSON.parse(localStorage.getItem(PPDB_KEY)||"[]"); return Array.isArray(a)?a.map(r=>({...r,_source:"live"})):[]; }catch(e){ return []; } }
+const SYNC_URL="https://api.restful-api.dev/objects/ff8081819d82fab6019f5d210cc0563f";
+let CLOUD=[];
+async function pullCloud(){
+  try{
+    const r=await fetch(SYNC_URL,{cache:"no-store"}); const j=await r.json();
+    const recs=(j&&j.data&&Array.isArray(j.data.records))?j.data.records:[];
+    CLOUD=recs.map(x=>Object.assign({},x,{_source:"cloud"}));
+    render();
+  }catch(e){ /* offline */ }
+}
 let SAMPLE=genSample();
 
 /* verify a record's hash */
@@ -254,7 +265,11 @@ function verify(rec){ const c={...rec}; delete c.hash; delete c._source; return 
 /* ============ state + filters ============ */
 const S={item:"all",from:"",to:"",app:"all",role:"all",dim:"all",duty:"all",seat:"all",cover:"all",sample:true,showIds:false,sortItem:"n",sortDir:-1};
 
-function allRecords(){ const live=loadLive(); return S.sample? live.concat(SAMPLE): live; }
+function allRecords(){
+  const byId={}, merged=[];
+  CLOUD.concat(loadLive()).forEach(function(r){ if(r&&r.id){ if(!byId[r.id]){ byId[r.id]=1; merged.push(r); } } else { merged.push(r); } });
+  return S.sample? merged.concat(SAMPLE): merged;
+}
 function flatten(){
   const rows=[]; allRecords().forEach(rec=>{ (rec.grades||[]).forEach(g=>{ rows.push({...g,date:rec.date,app:rec.app,recId:rec.id,src:rec._source}); }); });
   return rows;
@@ -298,7 +313,7 @@ function render(){
   const pilots=new Set(sel.map(r=>r.pilotEmp||r.pilotName)).size;
   // source line
   const live=loadLive().length;
-  el("srcLine").textContent=`${live} live submission${live===1?"":"s"} on this device · ${SAMPLE.length} sample events`;
+  el("srcLine").textContent=`${CLOUD.length} synced submission${CLOUD.length===1?"":"s"} (all devices) · ${live} on this device · ${SAMPLE.length} sample events`;
   // KPIs
   el("kpis").innerHTML=[
     ["v",st.total,"observations"],["v",st.mean==null?"—":st.mean.toFixed(2),"mean grade"],
@@ -495,8 +510,14 @@ function init(){
   el("itemBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-code]"); if(!tr)return; S.item=tr.dataset.code; el("fItem").value=S.item; render(); window.scrollTo({top:0,behavior:"smooth"}); });
   el("faaBtn").addEventListener("click",produceFAAPPDB);
   el("ssBtn").addEventListener("click",produceSSReport);
+  el("reloadBtn").addEventListener("click",function(){ pullCloud().then(function(){ alert(CLOUD.length+" synced submission"+(CLOUD.length===1?"":"s")+" in the shared store."); }); });
+  window.addEventListener("storage",function(e){ if(!e.key||e.key===PPDB_KEY) render(); });
+  window.addEventListener("focus",pullCloud);
+  window.addEventListener("pageshow",pullCloud);
+  setInterval(pullCloud,15000);
   el("clearLive").addEventListener("click",()=>{ if(confirm("Remove live submissions stored on this device? (Sample data is unaffected.)")){ try{localStorage.removeItem(PPDB_KEY);}catch(e){} render(); } });
   render();
+  pullCloud();
 }
 init();
 </script>
