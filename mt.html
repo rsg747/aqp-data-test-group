@@ -499,6 +499,10 @@ body.dt-locked #stage{pointer-events:none;opacity:.93}
 .dt-attest{font-size:13px;line-height:1.55;color:#37424f}
 .dt-sum{background:#f4f0fb;border:1px solid #d9cbef;border-radius:8px;padding:8px 10px;margin:8px 0}
 .dt-attest label.cert{display:flex;gap:9px;align-items:flex-start;margin-top:8px;cursor:pointer}
+.dt-caution{background:#fdecea;border:2px solid #b3261e;border-radius:8px;padding:9px 12px;margin:0 0 10px;animation:dtcbg 1s steps(1,end) infinite}
+@keyframes dtcbg{0%,49%{background:#fdecea;border-color:#b3261e}50%,100%{background:#fff4f3;border-color:#e79992}}
+.dt-caution-hd{font-weight:800;color:#b3261e;letter-spacing:.5px;margin-bottom:5px;animation:dtflash 1s steps(1,end) infinite}
+@keyframes dtflash{0%,49%{color:#b3261e}50%,100%{color:#f0a49d}}
 </style>
 </head>
 <body class="run1">
@@ -943,8 +947,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 const GRADES = ["5","4","3","2","2-RP","2-RF","1","1-RP","1-RF","N/A"];
 const BELOW = new Set(["3","2","2-RP","2-RF","1","1-RP","1-RF"]);
 /* ---- document version (bump on each update) ---- */
-const VERSION = "2026.07.43";
-const VERSION_DATE = "2026-07-11";
+const VERSION = "2026.07.47";
+const VERSION_DATE = "2026-07-13";
 /* ---- data models ---- */
 // rows present per exercise, in AIMS/PF then PM order
 const MT_EVENTS = [
@@ -2402,6 +2406,7 @@ function toast(msg){ let t=document.getElementById("toast"); if(!t){ t=document.
 /* generic modal */
 function closeModal(){ document.querySelectorAll(".mo-overlay").forEach(o=>o.remove()); }
 const CHANGELOG=[
+ {v:"2026.07.47",date:"2026-07-13",notes:["Second safety on Submit: an Incomplete result now shows a flashing red CAUTION with its own \u201CYes \u2014 I intend to submit this\u201D confirmation, so it can\u2019t be sent by accident.","Data store now also records event outcome (Complete/Incomplete) and the reason (simulator malfunction, illness, unable to complete in allotted time) for internal tracking."]},
  {v:"2026.07.43",date:"2026-07-12",notes:["Graded-task pop-ups now include a collapsible \u201CPerformance Statement & Standards\u201D reference \u2014 the approved Performance Statement (from the Qualification Standards) plus the per-dimension Performance Standards and FCOM/FOM/FCTM references, for all 13 CQMT1.1 graded tasks."]},
  {v:"2026.07.42",date:"2026-07-11",notes:["Added per-crewmember Takeoffs and Landings (0–9 dropdowns) and Special Tracking (Yes/No, default No), to the right of each pilot — feeding the AIMS Module Status and the entry-order PDF.","Moved the ⇅ Swap button to the top-right of the crew block."]},
  {v:"2026.07.41",date:"2026-07-11",notes:["Replaced the departure chart with the STHBY 1 RNAV Departure (STHBY1.STHBY); the profile/lesson-guide chart pill is now ‘STHBY 1 SID’."]},
@@ -2977,7 +2982,7 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
 /* ============ DATA TEST GROUP — submit / lock / PPDB ============ */
 (function(){
   var PPDB_KEY="AQP_PPDB_v1";
-  var SYNC_URL="https://api.restful-api.dev/objects/ff8081819d82fab6019f5d210cc0563f", SYNC_NAME="AQP-PPDB-DTG-v1";
+  var SYNC_URL="https://script.google.com/macros/s/AKfycbyhPHmGYBfYPyBmhKezwZnsXG3iXxw9OpwjAKQF0Ug73elpVqyA2TalkNBA4W0rbGZw/exec";
   var DASH_URL="AQP_Data_Dashboard.html";   // dashboard location (adjust when published)
   window.SUBMITTED=window.SUBMITTED||false; window.SUB_ID=window.SUB_ID||null;
   var isMV=(typeof SPOT_EVENTS!=="undefined");
@@ -3052,13 +3057,8 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
 
   function cloudPush(){
     try{
-      fetch(SYNC_URL).then(function(r){return r.json();}).then(function(j){
-        var recs=(j&&j.data&&Array.isArray(j.data.records))?j.data.records:[];
-        var have={}; recs.forEach(function(x){ if(x&&x.id) have[x.id]=1; });
-        var local=[]; try{ local=JSON.parse(localStorage.getItem(PPDB_KEY)||"[]"); }catch(e){}
-        var added=0; local.forEach(function(x){ if(x&&x.id&&!have[x.id]){ recs.push(x); have[x.id]=1; added++; } });
-        if(added>0){ fetch(SYNC_URL,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:SYNC_NAME,data:{records:recs}})}); }
-      }).catch(function(){});
+      var local=JSON.parse(localStorage.getItem(PPDB_KEY)||"[]");
+      local.forEach(function(x){ if(x&&x.id){ fetch(SYNC_URL,{method:"POST",body:JSON.stringify(x)}).catch(function(){}); } });
     }catch(e){}
   }
   function doSubmit(rec){
@@ -3079,8 +3079,18 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
     if(miss.length){ toast("Enter "+miss.join(", ")+" before submitting."); return; }
     var rec=buildSubmission();
     var nBelow=rec.grades.filter(function(g){return g.below;}).length;
+    var flagged=(rec.finals||[]).filter(function(f){return f.label==="Unsatisfactory"||f.label==="Incomplete";});
+    var flagHTML="";
+    if(flagged.length){
+      var lst=flagged.map(function(f){ return "<li><b>"+esc(f.pilotName||f.slot)+"</b> \u2014 "+esc(f.ex)+": <b>"+esc(f.label)+"</b>"+(f.reasonLabel?(" ("+esc(f.reasonLabel)+")"):"")+"</li>"; }).join("");
+      flagHTML="<div class='dt-caution'><div class='dt-caution-hd'>\u26A0 CAUTION \u2014 UNSATISFACTORY / INCOMPLETE</div>"+
+        "<div>This event contains a result that does not meet the standard:</div>"+
+        "<ul style='margin:5px 0 5px 18px'>"+lst+"</ul>"+
+        "<label class='cert' style='margin-top:2px'><input type='checkbox' id='dtUnsatAck' style='margin-top:3px'>"+
+        "<span><b>Yes \u2014 I intend to submit this Unsatisfactory / Incomplete result.</b> This is not an accidental grade.</span></label></div>";
+    }
     var wrap=document.createElement("div"); wrap.className="dt-attest";
-    wrap.innerHTML="<div>You are about to submit this event to the <b>Data Test Group</b> store. "+
+    wrap.innerHTML=flagHTML+"<div>You are about to submit this event to the <b>Data Test Group</b> store. "+
       "<b>Once submitted, this record is final and cannot be changed.</b></div>"+
       "<div class='dt-sum'>"+
         "<div><b>"+esc(rec.curriculum)+"</b> · "+esc(rec.date||"—")+" · I/E "+esc(rec.instructor.name||"—")+"</div>"+
@@ -3094,6 +3104,7 @@ document.querySelectorAll(".xtab").forEach(t=>t.addEventListener("click",()=>{
       {label:"Submit — final", kind:"primary", onClick:function(){
         var cb=document.getElementById("dtAttest");
         if(!cb||!cb.checked){ toast("Check the certification box to submit."); return; }
+        if(flagged.length){ var ua=document.getElementById("dtUnsatAck"); if(!ua||!ua.checked){ toast("Confirm the Unsatisfactory / Incomplete result to submit."); return; } }
         doSubmit(rec); closeModal();
       }},
       {label:"Cancel", onClick:closeModal}

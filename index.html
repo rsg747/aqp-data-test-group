@@ -126,6 +126,12 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     <div class="card"><h3>By seat position</h3><div class="cap">Left seat vs right seat for the current selection (captured on every graded item).</div><div id="bySeat"></div></div>
   </div>
 
+  <div class="card" id="outcomeCard">
+    <h3>Final event outcomes <span class="poc" style="background:#f4f0fb;color:#5B2A86">INTERNAL</span></h3>
+    <div class="cap">Event-level results (Satisfactory / Unsatisfactory · Complete / Incomplete) across the current date window &amp; instrument, with the reason recorded for each Unsatisfactory / Incomplete. Useful internally — not an FAA grade record.</div>
+    <div id="outcomes"></div>
+  </div>
+
   <div class="card"><h3>How the group is doing — by item</h3>
     <div class="cap"><b id="covLine"></b> — click a row to focus it above; click headers to sort. The tag shows the current instrument (MV / SPOT / MT) or “not scheduled.”</div>
     <table id="itemTbl"><thead><tr>
@@ -211,10 +217,17 @@ function makeRecord(app,dateStr,rng,ie){
       });
     });
   });
+  const isVal=(app==="MV");
+  const finals=crew.map(function(p){
+    const fail=rng()<0.10;
+    const label=fail?(isVal?"Unsatisfactory":"Incomplete"):(isVal?"Satisfactory":"Complete");
+    let reason=""; if(fail){ const rr=rng(); reason= rr<0.45?"Unable to complete in allotted time":(rr<0.72?"Simulator malfunction":(rr<0.88?"Illness":"")); }
+    return {ex:app,slot:p.slot,pilotName:p.name,pilotEmp:p.emp,duty:p.duty,label:label,reasonLabel:reason};
+  });
   const curric=app==="MT"?"CQMT1.1":"CQMV.1";
   const rec={schema:"AQP_PPDB_v1",id:"SMP-"+dateStr.replace(/-/g,"")+"-"+Math.floor(rng()*9000),submittedAt:dateStr+"T14:00:00.000Z",
     app:app,curriculum:curric,date:dateStr,instructor:{name:ie,emp:"6"+Math.floor(1000+rng()*8999)},
-    crew:crew,finals:[],grades:grades};
+    crew:crew,finals:finals,grades:grades};
   rec.hash=hashOf(rec); rec._source="sample";
   return rec;
 }
@@ -227,7 +240,7 @@ function genSample(){
     const ie=IES[Math.floor(rng()*IES.length)];
     const rec=makeRecord(app,iso(d),rng,ie);
     if(app==="MV"){ // append SPOT grades into same MV event
-      const spot=makeRecord("SPOT",iso(d),rng,ie); rec.grades=rec.grades.concat(spot.grades); rec.hash=hashOf({...rec,hash:undefined,_source:undefined});
+      const spot=makeRecord("SPOT",iso(d),rng,ie); rec.grades=rec.grades.concat(spot.grades); rec.finals=rec.finals.concat(spot.finals); rec.hash=hashOf({...rec,hash:undefined,_source:undefined});
     }
     if(rng()<0.3){
       var its=(app==="MV")?TASKS.MV.concat(TASKS.SPOT):TASKS.MT;
@@ -247,12 +260,12 @@ function genSample(){
 /* ============ data load ============ */
 const PPDB_KEY="AQP_PPDB_v1";
 function loadLive(){ try{ const a=JSON.parse(localStorage.getItem(PPDB_KEY)||"[]"); return Array.isArray(a)?a.map(r=>({...r,_source:"live"})):[]; }catch(e){ return []; } }
-const SYNC_URL="https://api.restful-api.dev/objects/ff8081819d82fab6019f5d210cc0563f";
+const SYNC_URL="https://script.google.com/macros/s/AKfycbyhPHmGYBfYPyBmhKezwZnsXG3iXxw9OpwjAKQF0Ug73elpVqyA2TalkNBA4W0rbGZw/exec";
 let CLOUD=[];
 async function pullCloud(){
   try{
     const r=await fetch(SYNC_URL,{cache:"no-store"}); const j=await r.json();
-    const recs=(j&&j.data&&Array.isArray(j.data.records))?j.data.records:[];
+    const recs=(j&&Array.isArray(j.records))?j.records:[];
     CLOUD=recs.map(x=>Object.assign({},x,{_source:"cloud"}));
     render();
   }catch(e){ /* offline */ }
@@ -344,6 +357,21 @@ function render(){
   el("byDuty").innerHTML=[["CA","Captain (CA)"],["FO","First Officer (FO)"],["Seat Support","Seat Support"]].map(([v,l])=>{ const st2=stats(duel.filter(r=>r.duty===v)); if(!st2.total&&v==="Seat Support")return ""; return cmpBar(l,st2); }).join("")||`<div class="empty">No data.</div>`;
   const ssel=rows.filter(r=>passExcept(r,"seat"));
   el("bySeat").innerHTML=[["Left","Left seat"],["Right","Right seat"]].map(([v,l])=>cmpBar(l,stats(ssel.filter(r=>seatMatch(r,v))))).join("");
+  (function(){
+    const orecs=allRecords().filter(r=>inRange(r.date));
+    let sat=0,unsat=0,comp=0,incomp=0; const rs={"Simulator malfunction":0,"Illness":0,"Unable to complete in allotted time":0};
+    orecs.forEach(function(rec){ (rec.finals||[]).forEach(function(f){
+      if(S.app!=="all"&&f.ex!==S.app) return;
+      if(f.label==="Satisfactory")sat++; else if(f.label==="Unsatisfactory"){unsat++; if(rs[f.reasonLabel]!==undefined)rs[f.reasonLabel]++;}
+      else if(f.label==="Complete")comp++; else if(f.label==="Incomplete"){incomp++; if(rs[f.reasonLabel]!==undefined)rs[f.reasonLabel]++;}
+    }); });
+    const totalFail=unsat+incomp;
+    const chip=function(lab,n,cls){ return `<span class="pill ${cls}" style="font-size:13px;margin-right:8px;margin-bottom:6px;display:inline-block">${lab}: <b>${n}</b></span>`; };
+    let h=`<div style="margin-bottom:4px">${chip("Satisfactory",sat,"p-good")}${chip("Complete",comp,"p-good")}${chip("Unsatisfactory",unsat,"p-bad")}${chip("Incomplete",incomp,"p-bad")}</div>`;
+    if(totalFail){ h+=`<div class="cap" style="margin:8px 0 3px">Reason recorded (${totalFail} unsat / incomplete):</div><div>${chip("Sim malfunction",rs["Simulator malfunction"],"p-deb")}${chip("Illness",rs["Illness"],"p-deb")}${chip("Unable to complete in time",rs["Unable to complete in allotted time"],"p-deb")}</div>`; }
+    else { h+=`<div class="empty">No Unsatisfactory / Incomplete results in this window.</div>`; }
+    const oe=el("outcomes"); if(oe) oe.innerHTML=h;
+  })();
   // item summary (ignore item filter)
   const isel=baseFilter(rows,true); const byc={};
   isel.forEach(r=>{ (byc[r.code]=byc[r.code]||[]).push(r); });
