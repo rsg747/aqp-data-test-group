@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Test Group · AQP Proficiency Data (PPDB)</title>
+<style>
+:root{--navy:#16273f;--purple:#5B2A86;--purple2:#6d34a0;--pl:#f4f0fb;--pb:#d9cbef;
+--good:#2f7d53;--deb:#c8901a;--bad:#b22a24;--line:#d7dce6;--ink:#26313f;--mut:#5a6472;--card:#ffffff;--bg:#f5f6f9;}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.wrap{max-width:1180px;margin:0 auto;padding:14px 16px 60px}
+header.top{background:linear-gradient(100deg,#20143a,#3a2166);color:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 10px rgba(0,0,0,.12);position:relative;overflow:hidden}
+header.top h1{margin:0 0 3px;font-size:22px;letter-spacing:.2px}
+header.top .sub{color:#d9c9f2;font-size:13px}
+.badge{display:inline-block;background:#fff;color:var(--purple);font-weight:800;letter-spacing:.6px;font-size:11px;padding:3px 9px;border-radius:6px;margin-left:8px;vertical-align:middle}
+.poc{display:inline-block;background:#c8901a;color:#241a02;font-weight:800;font-size:10px;letter-spacing:.5px;padding:3px 8px;border-radius:5px;margin-left:6px;vertical-align:middle}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.ctl{display:flex;flex-direction:column;gap:3px}
+.ctl label{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.ctl select,.ctl input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;background:#fff;color:var(--ink)}
+.ctl select{min-width:150px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:7px 11px;font-size:12px;cursor:pointer;color:var(--mut)}
+.seg button.on{background:var(--purple);color:#fff;font-weight:700}
+.presets button{border:1px solid var(--pb);background:var(--pl);color:var(--purple);border-radius:14px;padding:4px 10px;font-size:12px;margin-right:5px;cursor:pointer}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:12px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.kpi .v{font-size:24px;font-weight:800;color:var(--navy);line-height:1}
+.kpi .l{font-size:11px;color:var(--mut);margin-top:5px;text-transform:uppercase;letter-spacing:.3px}
+.kpi.good .v{color:var(--good)}.kpi.bad .v{color:var(--bad)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:12px 0}
+.card h3{margin:0 0 3px;font-size:15px;color:var(--navy)}
+.card .cap{font-size:12px;color:var(--mut);margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #eef1f5}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--mut);cursor:pointer;user-select:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700}
+.p-good{background:#e6f2ea;color:var(--good)}.p-deb{background:#faf1dd;color:var(--deb)}.p-bad{background:#f7e4e2;color:var(--bad)}
+.barrow{display:grid;grid-template-columns:120px 1fr 54px;align-items:center;gap:8px;margin:5px 0}
+.barrow .lab{font-size:12px;color:var(--ink)}
+.bartrack{background:#eef1f5;border-radius:6px;height:20px;overflow:hidden}
+.barfill{height:100%;border-radius:6px}
+.legend{font-size:11px;color:var(--mut);margin-top:6px}
+.note{font-size:12px;color:var(--mut);background:#fbfbfe;border:1px dashed var(--pb);border-radius:8px;padding:8px 10px;margin:10px 0}
+.src{font-size:11px;color:var(--mut)}
+.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace}
+.ok{color:var(--good);font-weight:700}.warn{color:var(--bad);font-weight:700}
+.empty{color:var(--mut);font-style:italic;padding:14px 0}
+.linkbtn{background:var(--purple);color:#fff;border:0;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>AQP Proficiency Data — Group Dashboard <span class="badge">DATA TEST GROUP</span><span class="poc">PROOF OF CONCEPT</span></h1>
+    <div class="sub">Steps 2 &amp; 3 of the in-house plan — the PPDB store and the analysis/reporting layer. Covers the full 195-task Pilot (B747) Qualification Standard — including tasks not currently instrumented. Reads locked submissions from the Data Test Group tools on this device plus a sample dataset.</div>
+  </header>
+
+  <div class="controls" id="controls">
+    <div class="ctl"><label>Item / task</label>
+      <select id="fItem"></select></div>
+    <div class="ctl"><label>From</label><input type="date" id="fFrom"></div>
+    <div class="ctl"><label>To</label><input type="date" id="fTo"></div>
+    <div class="ctl"><label>Quick range</label>
+      <div class="presets" id="presets">
+        <button data-d="30">30d</button><button data-d="90">90d</button><button data-d="180">180d</button><button data-d="365">1y</button><button data-d="0">All</button>
+      </div></div>
+    <div class="ctl"><label>Instrument</label>
+      <div class="seg" id="fApp"><button data-v="all" class="on">All</button><button data-v="MV">MV</button><button data-v="SPOT">SPOT</button><button data-v="MT">MT</button></div></div>
+    <div class="ctl"><label>Role</label>
+      <div class="seg" id="fRole"><button data-v="all" class="on">All</button><button data-v="PF">PF</button><button data-v="PM">PM</button></div></div>
+    <div class="ctl"><label>Dimension</label>
+      <div class="seg" id="fDim"><button data-v="all" class="on">All</button><button data-v="Handling">H</button><button data-v="SOP">SOP</button><button data-v="Automation">A</button><button data-v="CRM">CRM</button></div></div>
+    <div class="ctl"><label>Duty</label>
+      <div class="seg" id="fDuty"><button data-v="all" class="on">All</button><button data-v="CA">CA</button><button data-v="FO">FO</button><button data-v="Seat Support">SS</button></div></div>
+    <div class="ctl"><label>Seat</label>
+      <div class="seg" id="fSeat"><button data-v="all" class="on">All</button><button data-v="Left">Left</button><button data-v="Right">Right</button></div></div>
+    <div class="ctl"><label>Item table coverage</label>
+      <select id="fCover"><option value="all">All qualification standards (195)</option><option value="inst">Currently instrumented</option><option value="data">Has data</option><option value="nodata">No data yet</option></select></div>
+    <div class="ctl"><label>Data</label>
+      <label class="chk"><input type="checkbox" id="fSample" checked> include sample data</label>
+      <span class="src" id="srcLine"></span></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card" id="faaCard" style="border-left:5px solid var(--good)">
+    <h3>FAA PPDB submission <span class="poc" style="background:#e6f2ea;color:#2f7d53">DE-IDENTIFIED</span></h3>
+    <div class="cap">Produce the de-identified PPDB report for the current <b>date window</b> and instrument filter — the file you would submit to the FAA. <b>Seat Support is excluded</b> (Crewmember 2 is assigned no performance ratings per the AQP Manual), and crewmember names / employee numbers are removed. Opens a printable page you can Save-as-PDF or export to CSV (practice).</div>
+    <button class="linkbtn" id="faaBtn">Produce FAA PPDB ↗</button>
+    <span class="src" id="faaNote" style="margin-left:10px"></span>
+  </div>
+
+  <div class="card" id="ssCard" style="border-left:5px solid var(--purple)">
+    <h3>Seat Support report <span class="poc" style="background:#f4f0fb;color:#5B2A86">INTERNAL — NOT FAA</span></h3>
+    <div class="cap">Seat Support (Crewmember 2) receives no FAA ratings — these internal notes are for the instructor calibration / standardization program. Produce a printable report and email it to the <b>Standards Captain</b> (John Schumacher) and <b>Director, Training</b> (Adolfo Cortes).</div>
+    <button class="linkbtn" id="ssBtn">Seat Support report ↗</button>
+    <span class="src" id="ssNote" style="margin-left:10px"></span>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3 id="distTitle">Grade distribution</h3><div class="cap" id="distCap"></div><div id="dist"></div>
+      <div class="legend">Tiers: <span class="pill p-good">4–5 meets/exceeds</span> <span class="pill p-deb">3 standard w/ debrief</span> <span class="pill p-bad">≤2 or N/A below standard</span></div>
+    </div>
+    <div class="card"><h3>Trend over time</h3><div class="cap">Mean grade by month for the current selection (bar height = mean, number = observations).</div><div id="trend"></div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3>By dimension</h3><div class="cap">Mean and % below standard per dimension.</div><div id="byDim"></div></div>
+    <div class="card"><h3>PF vs PM</h3><div class="cap">Pilot Flying vs Pilot Monitoring for the current selection.</div><div id="byRole"></div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3>CA vs FO — the matrix</h3><div class="cap">Pick an item above, then read whether captains or first officers grade stronger on it. Bar = mean grade; ▾ = % below standard.</div><div id="byDuty"></div></div>
+    <div class="card"><h3>By seat position</h3><div class="cap">Left seat vs right seat for the current selection (captured on every graded item).</div><div id="bySeat"></div></div>
+  </div>
+
+  <div class="card"><h3>How the group is doing — by item</h3>
+    <div class="cap"><b id="covLine"></b> — click a row to focus it above; click headers to sort. The tag shows the current instrument (MV / SPOT / MT) or “not scheduled.”</div>
+    <table id="itemTbl"><thead><tr>
+      <th data-s="code">Item</th><th data-s="name">Name</th><th class="num" data-s="n">Obs</th><th class="num" data-s="mean">Mean</th>
+      <th class="num" data-s="good">% 4–5</th><th class="num" data-s="below">% below</th><th data-s="worst">Worst</th></tr></thead>
+      <tbody id="itemBody"></tbody></table>
+  </div>
+
+  <div class="card"><h3>Below-standard observations <span id="belowN" class="src"></span></h3>
+    <div class="cap">Every ≤2 / N-A grade in the selection, with the qualification standard(s) missed and the instructor comment — de-identified, as submitted to the FAA.
+      <label class="chk" style="display:inline-flex;margin-left:8px"><input type="checkbox" id="showIds"> show pilot IDs (internal only)</label></div>
+    <table id="belowTbl"><thead><tr>
+      <th>Date</th><th>Instr</th><th>Item</th><th>Dim</th><th>Role</th><th>Duty</th><th>Seat</th><th>Grade</th><th id="pidHdr" style="display:none">Pilot</th><th>Standard(s) missed / comment</th></tr></thead>
+      <tbody id="belowBody"></tbody></table>
+  </div>
+
+  <div class="card"><h3>Record integrity</h3>
+    <div class="cap">Each locked submission carries an integrity seal (hash). The dashboard re-computes it to confirm no record has been altered — demonstrating the immutability of a submitted record.</div>
+    <div id="integrity"></div>
+    <div class="note">Proof-of-concept notes: submissions are stored append-only in the browser’s local store on this device (same origin as the grading tools). True cross-iPad aggregation is the hosted-database step of the plan. “Meets standard” = grade 4–5; “3” is standard-with-debrief; “below” = 2 / 2-variants / 1 / 1-variants / N-A. This is a demonstration that the architecture is feasible, not a certified system.</div>
+    <button class="linkbtn" id="clearLive" style="margin-top:6px">Clear live submissions on this device</button>
+  </div>
+</div>
+
+<script>
+/* ============ full qualification standard catalog (all 195 tasks) ============ */
+const AREAS={"1": "Preflight & Ground", "2": "Takeoff", "3": "Climb", "4": "Cruise", "5": "Descent", "6": "Approach", "7": "Landing", "8": "After Landing / Shutdown", "9": "Ground Ops / Taxi", "10": "Non-Normal / Emergency", "11": "Airmanship & Upset", "12": "Systems Knowledge I", "13": "Systems Knowledge II", "14": "CRM / Threat & Error Mgmt"};
+const CURRENT={"MV": ["2.3", "10.1", "4.1.2", "6.8.3", "6.8.4", "6.9.3", "7.3.1", "7.3.2", "2.5.1"], "SPOT": ["6.7", "7.2", "10.2.1", "10.3.1"], "MT": ["2.7", "11.5.3", "11.4.2", "6.1.1", "7.1", "6.9.5", "6.9.6", "11.5.2", "11.4.4", "11.5.1", "11.5.4", "6.3", "7.7"]};
+const CAT=[["1.1","Perform Dispatch and Flight Planning Operations","TPO","1"],["1.1.1","Assess Operational Factors","SPO","1"],["1.1.2","Review Dispatch Requirements","SPO","1"],["1.1.3","Perform Security Procedures","SPO","1"],["1.2.1","Perform Preliminary Preflight Procedures","SPO","1"],["1.2.2","Perform Exterior Inspection Procedures","SPO","1"],["1.2.3","Perform Preflight Procedures","SPO","1"],["1.3.1","Perform Before Start Procedure","SPO","1"],["1.3.2","Perform Pushback or Towing Procedure","SPO","1"],["1.3.3","Perform Engine Start Procedure","SPO","1"],["1.3.4","Perform Before Taxi Procedure","SPO","1"],["1.4.1","Perform Taxi-Out Procedure","SPO","1"],["1.4.2","Perform SMGCS and Low Visibility Taxi-Out Procedure","SPO","1"],["1.4.3","Perform Before Takeoff Procedure","SPO","1"],["2.1","Perform Normal Takeoff Operations","TPO","2"],["2.1.1","Perform Takeoff Roll Procedure","SPO","2"],["2.1.2","Perform Rotation and Liftoff Procedure","SPO","2"],["2.1.3","Perform Initial Climb Procedure","SPO","2"],["2.2","Perform Instrument Takeoff Operations","TPO","2"],["2.2.1","Perform Instrument Takeoff Roll Procedure","SPO","2"],["2.2.2","Perform Instrument Takeoff Rotation and Liftoff Procedure","SPO","2"],["2.2.3","Perform Initial Climb Procedure","SPO","2"],["2.3","Perform Engine Failure after V1 but prior to V2 Takeoff Operations","TPO","2"],["2.3.1","Perform Engine Failure after V1 but prior to V2 Takeoff Roll Procedure","SPO","2"],["2.3.2","Perform Engine Failure after V1 but prior to V2 Rotation and Liftoff Procedure","SPO","2"],["2.3.3","Perform Engine Failure Initial Climb Procedure","SPO","2"],["2.4","Perform Engine Failure after V2 Takeoff Operations","TPO","2"],["2.4.1","Perform Engine Failure after V2 Takeoff Roll Procedure","SPO","2"],["2.4.2","Perform Engine Failure after V2 Rotation and Liftoff Procedure","SPO","2"],["2.4.3","Perform Engine Failure Initial Climb Procedure","SPO","2"],["2.5.1","Perform Rejected Takeoff Procedure","SPO","2"],["2.6","Perform Right Seat Engine Failure after V1 but prior to V2 Takeoff Operations (Captain)","TPO","2"],["2.6.1","Perform Right Seat Engine Failure after V1 but prior to V2 Takeoff Roll Procedure (Captain)","SPO","2"],["2.6.3","Perform Right Seat Engine Failure Initial Climb Procedure (Captain)","SPO","2"],["2.7","Perform Crosswind Takeoff with Gusts Operations","TPO","2"],["2.7.1","Perform Crosswind Takeoff with Gusts Roll Procedure","SPO","2"],["2.7.2","Perform Crosswind Rotation and Liftoff with Gusts Procedure","SPO","2"],["2.7.3","Perform Crosswind Initial Climb with Gusts Procedure","SPO","2"],["3.1","Perform Departure and Climb Operations","TPO","3"],["3.1.1","Perform Departure Procedure","SPO","3"],["3.1.2","Perform Climb Procedure","SPO","3"],["4.1","Perform Cruise Operations","TPO","4"],["4.1.1","Perform Cruise Procedure","SPO","4"],["4.1.2","Perform Route Diversion Procedure","SPO","4"],["4.1.3","Perform Driftdown Procedure","SPO","4"],["4.1.4","Perform Descent and Approach Preparation Procedure","SPO","4"],["5.1.1","Perform Descent and Arrival Procedures","SPO","5"],["6.1.1","Perform Visual Approach Procedure","SPO","6"],["6.1.2","Perform 50% of Available Powerplants Visual Approach Procedure","SPO","6"],["6.2","Perform Non-ILS Approach Operations","TPO","6"],["6.2.1","Perform Non-ILS Approach Preparation Procedure","SPO","6"],["6.2.2","Perform Vertical Speed Preparation Procedure","SPO","6"],["6.2.3","Perform Radar Approach Preparation Procedure","SPO","6"],["6.2.4","Perform Non-ILS Final Approach Procedure","SPO","6"],["6.3","Perform Non-ILS Approach with Gusts Operations","TPO","6"],["6.3.1","Perform Non-ILS Approach with Gusts Preparation Procedure","SPO","6"],["6.3.2","Perform Non-ILS Final Approach with Gusts Procedure","SPO","6"],["6.4","Perform PRM Approach Operations","TPO","6"],["6.4.1","Perform PRM Approach Preparation Procedure","SPO","6"],["6.4.2","Perform PRM Final Approach Procedure","SPO","6"],["6.4.3","Perform PRM Approach Breakout Procedure","SPO","6"],["6.5","Perform CAT I ILS Precision Approach Operations","TPO","6"],["6.5.1","Perform CAT I ILS Precision Approach Preparation Procedure","SPO","6"],["6.5.2","Perform CAT I ILS Precision Final Approach Procedure","SPO","6"],["6.6","Perform CAT II ILS Precision Approach Operations","TPO","6"],["6.6.1","Perform CAT II ILS Precision Approach Preparation Procedure","SPO","6"],["6.6.2","Perform CAT II ILS Precision Final Approach Procedure","SPO","6"],["6.7","Perform CAT III Precision Approach Operations","TPO","6"],["6.7.1","Perform CAT III ILS Precision Approach Preparation Procedure","SPO","6"],["6.7.2","Perform CAT III ILS Precision Final Approach Procedure","SPO","6"],["6.8","Perform Engine Inoperative Precision Approach Operations","TPO","6"],["6.8.1","Perform Autopilot Engaged Engine Inoperative Precision Approach Preparation Procedure","SPO","6"],["6.8.2","Perform Autopilot Engaged Engine Inoperative Precision Final Approach Procedure","SPO","6"],["6.8.3","Perform Manual Engine Inoperative Precision Approach Preparation Procedure","SPO","6"],["6.8.4","Perform Manual Engine Inoperative Precision Final Approach Procedure","SPO","6"],["6.9.1","Perform Manual Go-Around Procedure","SPO","6"],["6.9.2","Perform Automatic Go-Around Procedure","SPO","6"],["6.9.3","Perform Engine Inoperative Go-Around Procedure","SPO","6"],["6.9.4","Perform Two Engines Inoperative Go-Around Procedure","SPO","6"],["6.9.5","Perform Rejected/Balked Landing (Manual or Auto) Procedures","SPO","6"],["6.9.6","Perform Bounced Landing (Manual or Auto) Procedure (EET)","SPO","6"],["6.10.1","Perform Approach with Flap/Slat Non-Normal Procedures","SPO","6"],["6.11.1","Perform Jammed Stabilizer Approach Procedures","SPO","6"],["7.1","Perform Manual Landing Operations","TPO","7"],["7.1.1","Perform Manual Landing Procedure","SPO","7"],["7.1.2","Perform Manual Landing Roll Procedure","SPO","7"],["7.2","Perform Autoland Operations","TPO","7"],["7.2.1","Perform Autoland Procedure","SPO","7"],["7.2.2","Perform Autoland Rollout Procedure","SPO","7"],["7.3","Perform Landing with Engine(s) Inoperative Operations","TPO","7"],["7.3.1","Perform Manual Landing with Engine(s) Inoperative Procedure","SPO","7"],["7.3.2","Perform Manual Landing Roll with Engine(s) Inoperative Procedure","SPO","7"],["7.3.3","Perform Autoland with Engine Inoperative Procedure","SPO","7"],["7.3.4","Perform Autoland Landing Rollout with Engine Inoperative Procedure","SPO","7"],["7.4","Perform Landing with Flap/Slat Non-Normal Operations","TPO","7"],["7.4.1","Perform Landing with Flap/Slat Non-Normal Procedure","SPO","7"],["7.4.2","Perform Landing Roll with Flap/Slat Non-Normal Procedure","SPO","7"],["7.5","Perform Landing with Jammed Stabilizer Operations","TPO","7"],["7.5.1","Perform Landing with Jammed Stabilizer Procedure","SPO","7"],["7.5.2","Perform Landing with Jammed Stabilizer Roll Procedure","SPO","7"],["7.6","Perform Right Seat Engine Inoperative Landing Operations (Captain)","TPO","7"],["7.6.1","Perform Right Seat Engine Inoperative Landing Procedure (Captain)","SPO","7"],["7.6.2","Perform Right Seat Engine Inoperative Landing Roll Procedure (Captain)","SPO","7"],["7.7","Perform Crosswind Landing with Gusts Operations","TPO","7"],["7.7.1","Perform Crosswind Landing with Gusts Procedure","SPO","7"],["7.7.2","Perform Crosswind Landing Roll with Gusts Procedure","SPO","7"],["8.1.1","Perform After Landing Procedure","SPO","8"],["8.1.2","Perform Taxi-In Procedure","SPO","8"],["8.1.3","Perform SMGCS and Low Visibility Taxi-In Procedure","SPO","8"],["8.1.4","Perform Engine Shutdown Taxi-In Procedure","SPO","8"],["8.1.5","Perform Shutdown/Parking Procedure","SPO","8"],["8.1.6","Perform Postflight Procedure","SPO","8"],["8.1.7","Perform Secure Procedure","SPO","8"],["9.1.1","Perform Holding Procedure","SPO","9"],["9.2.1","Utilize Company Manual System","SPO","9"],["9.3","Perform Air Traffic Control (ATC) Operations","TPO","9"],["9.3.1","Perform ATC Procedures","SPO","9"],["9.3.2","Perform ATC Communication Procedures","SPO","9"],["9.4.1","Perform ACARS Procedure","SPO","9"],["9.4.2","Perform CPDLC Procedure","SPO","9"],["9.4.3","Perform SATCOM Procedure","SPO","9"],["9.5","Perform Supplementary Procedure","TPO","9"],["9.5.1","Perform Ground Deicing/Anti-Icing Procedure","SPO","9"],["9.5.2","Perform Cold Weather Procedures","SPO","9"],["9.5.3","Perform Turbulent Air Penetration Procedure","SPO","9"],["9.5.4","Perform Carriage of Animals and Perishables Supplementary Procedure","SPO","9"],["9.6","Perform Oceanic and Remote Continental Airspace Operations","TPO","9"],["9.6.1","Perform Oceanic and Remote Continental Airspace Procedures","SPO","9"],["9.6.2","Perform NAT Oceanic Clearance Procedure","SPO","9"],["9.8","Perform Flight Management System Operations","TPO","9"],["9.8.1","Perform FMS Initialization System Operations","SPO","9"],["9.8.2","Perform FMS Lateral Navigation System Operations","SPO","9"],["9.8.3","Perform FMS Vertical Navigation System Operations","SPO","9"],["9.8.4","Perform FMS Navigation Progress Functions System Operations","SPO","9"],["9.8.5","Perform FMS Performance Data Entry System Operations","SPO","9"],["9.8.6","Perform Automatic Flight System Operations","SPO","9"],["9.9.1","Perform Passenger Operations","SPO","9"],["10.1","Perform Airplane System Non-Normal Procedure Operations","TPO","10"],["10.1.1","Perform Airplane System Non-Normal Procedures requiring Immediate Action Items","SPO","10"],["10.1.2","Perform Airplane System Non-Normal Procedures included in the ECL or QRH","SPO","10"],["10.2.1","Perform Smoke/Fire/Fumes Procedures","SPO","10"],["10.3.1","Perform Cabin Altitude/Rapid Depressurization and Emergency Descent Procedures","SPO","10"],["11.1.1","Perform Inadvertent Windshear Recovery Procedure","SPO","11"],["11.2.1","Perform Terrain Avoidance (GPWS/EGPWS) Procedure","SPO","11"],["11.3.1","Perform Traffic Avoidance Procedure","SPO","11"],["11.4.1","Perform Steep Turns","SPO","11"],["11.4.2","Perform Manually Controlled Slow Flight (EET)","SPO","11"],["11.4.3","Perform Approach to Low/High Altitude Stall Prevention and Recovery","SPO","11"],["11.4.4","Perform Full Stall Prevention and Recovery (EET)","SPO","11"],["11.5.1","Perform Manually Controlled Loss of Reliable Airspeed (EET)","SPO","11"],["11.5.2","Perform Unusual Attitude/Upset Recovery (EET)","SPO","11"],["11.5.3","Manually Perform Instrument Departure and Climb Procedures (EET)","SPO","11"],["11.5.4","Manually Perform Descent and Terminal Arrival Procedures (EET)","SPO","11"],["12.1.1","Understand General Subjects","SPO","12"],["12.1.2","Understand Extended Envelope Training (EET) Subjects","SPO","12"],["12.1.3","Understand Fatigue Risk Management Subjects","SPO","12"],["12.2.1","Understand General Emergency Training Subjects","SPO","12"],["12.2.2","Perform General Emergency Drills Hands-On","SPO","12"],["12.2.3","Understand General Emergency Drills Presentation/Demonstration","SPO","12"],["12.2.4","Understand General Emergency Drills Observations","SPO","12"],["12.3.1","Understand Crewmember's Role in Security Procedures","SPO","12"],["12.4.1","Understand Cargo Operations","SPO","12"],["12.5.1","Understand Hazardous Materials Related Procedures","SPO","12"],["12.6.1","Demonstrate Knowledge of Leadership Styles","SPO","12"],["12.6.2","Demonstrate Effective Leadership","SPO","12"],["12.6.3","Demonstrate Understanding of Value of Mentoring","SPO","12"],["12.7.1","Understand Medical Emergency Procedures","SPO","12"],["12.8.1","Conduct Pictorial Preflight Visual Inspection","SPO","12"],["13.1.2","Understand Air Systems Operations and Procedures","SPO","13"],["13.1.3","Understand Anti-Ice/Rain Protection System Operations and Procedures","SPO","13"],["13.1.4","Understand Automatic Flight System Operations and Procedures","SPO","13"],["13.1.5","Understand Communication System Operations and Procedures","SPO","13"],["13.1.6","Understand Electrical System Operations and Procedures","SPO","13"],["13.1.7","Understand Engine/APU System Operations and Procedures","SPO","13"],["13.1.8","Understand Fire Protection System Operations and Procedures","SPO","13"],["13.1.9","Understand Flight Control System Operations and Procedures","SPO","13"],["13.1.10","Understand Flight Instruments/Displays System Operations and Procedures","SPO","13"],["13.1.11","Understand Flight Management/Navigation System Operations and Procedures","SPO","13"],["13.1.12","Understand Fuel System Operations and Procedures","SPO","13"],["13.1.13","Understand Hydraulic System Operations and Procedures","SPO","13"],["13.1.14","Understand Landing Gear System Operations and Procedures","SPO","13"],["13.1.15","Understand Warning Systems Operations and Procedures","SPO","13"],["14.1.1","Demonstrate Proper Application of Standard Operating Procedures","SPO","14"],["14.1.2","Exhibit Communication Skills","SPO","14"],["14.1.3","Exhibit Airplane Flight Path Management Automation Skills","SPO","14"],["14.1.4","Exhibit Airplane Flight Path Management Manual Control Skills","SPO","14"],["14.1.5","Exhibit Leadership and Teamwork Management Skills","SPO","14"],["14.1.6","Exhibit Problem Solving and Decision Making Skills","SPO","14"],["14.1.7","Exhibit Situational Awareness Skills","SPO","14"],["14.1.8","Exhibit Workload Management Skills","SPO","14"],["14.1.9","Exhibit Proper Application of Professional Knowledge","SPO","14"],["14.1.10","Exhibit Active Flight Path Monitoring Skills","SPO","14"],["14.1.11","Exhibit flight path monitoring skills in the red zone","SPO","14"],["14.1.12","Exhibit flight path monitoring skills in the yellow zone","SPO","14"],["14.1.13","Exhibit flight path monitoring skills in the green zone","SPO","14"]];
+const NAME={},CHAP={},TYPE={},COVER={};
+CAT.forEach(function(r){ NAME[r[0]]=r[1]; TYPE[r[0]]=r[2]; CHAP[r[0]]=r[3]; });
+for(const app in CURRENT){ CURRENT[app].forEach(function(c){ COVER[c]=app; }); }
+const TASKS={MV:CURRENT.MV.map(function(c){return [c,NAME[c]];}),SPOT:CURRENT.SPOT.map(function(c){return [c,NAME[c]];}),MT:CURRENT.MT.map(function(c){return [c,NAME[c]];})};
+const APPOF=COVER;
+const STD_HINT={ "2.3":"Maintains V2, ±5°; correct rudder/aileron; identifies failed engine",
+ "6.1.1":"Stabilized by 500’; VNAV/path within tolerance; callouts complete",
+ "11.4.4":"Prompt recognition; nose-down/thrust; minimum altitude loss",
+ "6.7":"Autoflight monitored; correct callouts; go-around if unstable",
+ "default":"Deviation beyond tolerance / procedure step missed" };
+function stdFor(code){ return STD_HINT[code]||STD_HINT.default; }
+
+/* ============ helpers ============ */
+function gnum(g){ if(g==="N/A")return null; const b=g[0]; return {"5":5,"4":4,"3":3,"2":2,"1":1}[b]||null; }
+function tier(g){ if(g==="N/A")return "bad"; const n=gnum(g); if(n>=4)return "good"; if(n===3)return "deb"; return "bad"; }
+function hashOf(o){ const t=JSON.stringify(o); let h=5381; for(let i=0;i<t.length;i++){ h=((h<<5)+h+t.charCodeAt(i))>>>0; } return h.toString(16).padStart(8,"0"); }
+function iso(d){ return d.toISOString().slice(0,10); }
+function fmtPct(x){ return (x*100).toFixed(0)+"%"; }
+
+/* ============ seeded sample data ============ */
+function mulberry32(a){ return function(){ a|=0;a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const FIRST=["J. Reyes","M. Tan","D. Okoro","S. Petrov","A. Cole","R. Vance","K. Sato","B. Mensah","L. Ferro","T. Novak","P. Haas","C. Ibarra","E. Boyd","N. Farrell","W. Choi","G. Ruiz","H. Odom","V. Lund","F. Amari","O. Brandt","Q. Reid","Z. Kane","Y. Sole","U. Marsh"];
+function pickGrade(rng,hard){ // hard 0..1 raises chance of low grades
+  const r=rng();
+  const p3=0.10+hard*0.14, p2=0.03+hard*0.09, p1=0.01+hard*0.03, pNA=0.01, p5=0.13-hard*0.06;
+  if(r<pNA) return "N/A";
+  if(r<pNA+p1) return rng()<0.4?"1-RF":"1";
+  if(r<pNA+p1+p2) return rng()<0.45?"2-RP":(rng()<0.5?"2-RF":"2");
+  if(r<pNA+p1+p2+p3) return "3";
+  if(r<pNA+p1+p2+p3+p5) return "5";
+  return "4";
+}
+const HARD={ "2.3":.6,"11.4.4":.65,"6.7":.4,"11.5.1":.5,"2.5.1":.35,"6.8.4":.45,"7.7":.4,"10.2.1":.3 };
+function makeRecord(app,dateStr,rng,ie){
+  const items=TASKS[app]; const crew=[];
+  for(let c=0;c<2;c++){ const nm=FIRST[Math.floor(rng()*FIRST.length)]; crew.push({slot:c?"pf2nd":"pf1st",name:nm,emp:String(70000+Math.floor(rng()*9000)),duty:rng()<0.5?"CA":"FO"}); }
+  const pairing=(crew[0].duty===crew[1].duty)?(crew[0].duty==="CA"?"CACA":"FOFO"):"MIX";
+  function seatFor(role,duty){ if(pairing==="CACA")return role==="PF"?"Left Seat":"Right Seat"; if(pairing==="FOFO")return role==="PF"?"Right Seat":"Left Seat"; return duty==="CA"?"Left Seat":"Right Seat"; }
+  const CA_FAV={"2.3":1,"6.8.4":1,"2.5.1":1,"6.9.3":1}, FO_FAV={"6.1.1":1,"2.7":1,"7.7":1,"11.4.2":1};
+  const grades=[];
+  crew.forEach((p,ci)=>{
+    items.forEach(([code,nm])=>{
+      let hard=HARD[code]||0.12;
+      if(CA_FAV[code]&&p.duty==="FO") hard+=0.07;
+      if(FO_FAV[code]&&p.duty==="CA") hard+=0.07;
+      hard=Math.min(0.9,hard);
+      [["Handling","PF"],["SOP","PF"],["Automation","PF"],["CRM","PF"],["SOP","PM"],["CRM","PM"]].forEach(([dim,role])=>{
+        if(role==="PF"&&dim==="Automation"&&rng()<0.35) return; // some tasks no automation
+        const g=pickGrade(rng,hard);
+        const row={ex:app,code,name:nm,dim,role,run:role==="PF"?(ci+1):(2-ci),grade:g,below:(tier(g)==="bad"),
+          pilotName:p.name,pilotEmp:p.emp,duty:p.duty,seat:seatFor(role,p.duty),take:"1",stds:[],note:""};
+        if(tier(g)==="bad"){ row.stds=[stdFor(code)]; if(rng()<0.6) row.note=["Late recognition","Standard callout missed","Exceeded tolerance","Slow to correct","Config not confirmed"][Math.floor(rng()*5)]+"."; }
+        grades.push(row);
+      });
+    });
+  });
+  const curric=app==="MT"?"CQMT1.1":"CQMV.1";
+  const rec={schema:"AQP_PPDB_v1",id:"SMP-"+dateStr.replace(/-/g,"")+"-"+Math.floor(rng()*9000),submittedAt:dateStr+"T14:00:00.000Z",
+    app:app,curriculum:curric,date:dateStr,instructor:{name:ie,emp:"6"+Math.floor(1000+rng()*8999)},
+    crew:crew,finals:[],grades:grades};
+  rec.hash=hashOf(rec); rec._source="sample";
+  return rec;
+}
+function genSample(){
+  const rng=mulberry32(20260713); const recs=[]; const IES=["R. Gray","M. Stein","P. Cortes","J. Kwan","D. Ellis"];
+  const today=new Date("2026-07-13T00:00:00Z");
+  for(let i=0;i<52;i++){
+    const back=Math.floor(rng()*372)+2; const d=new Date(today); d.setUTCDate(d.getUTCDate()-back);
+    const app = rng()<0.62?"MV":"MT"; // MV records also carry SPOT grades
+    const ie=IES[Math.floor(rng()*IES.length)];
+    const rec=makeRecord(app,iso(d),rng,ie);
+    if(app==="MV"){ // append SPOT grades into same MV event
+      const spot=makeRecord("SPOT",iso(d),rng,ie); rec.grades=rec.grades.concat(spot.grades); rec.hash=hashOf({...rec,hash:undefined,_source:undefined});
+    }
+    if(rng()<0.3){
+      var its=(app==="MV")?TASKS.MV.concat(TASKS.SPOT):TASKS.MT;
+      var ssName=FIRST[Math.floor(rng()*FIRST.length)], ssEmp=String(70000+Math.floor(rng()*9000));
+      var nn=1+Math.floor(rng()*3), used={}, ssl=[];
+      for(var q=0;q<nn;q++){ var it=its[Math.floor(rng()*its.length)]; if(used[it[0]])continue; used[it[0]]=1;
+        ssl.push({ex:app,run:1+Math.floor(rng()*2),code:it[0],name:it[1],role:rng()<0.5?"PF":"SOP_PM",
+          stds:[stdFor(it[0])],note:["Slow to back up PF","Missed a standard callout","Did not catch the config","Late on the checklist","Weak threat brief"][Math.floor(rng()*5)]+".",
+          pilotName:ssName,pilotEmp:ssEmp,duty:"Seat Support"}); }
+      rec.ss=ssl; rec.hash=hashOf({...rec,hash:undefined,_source:undefined});
+    }
+    recs.push(rec);
+  }
+  return recs;
+}
+
+/* ============ data load ============ */
+const PPDB_KEY="AQP_PPDB_v1";
+function loadLive(){ try{ const a=JSON.parse(localStorage.getItem(PPDB_KEY)||"[]"); return Array.isArray(a)?a.map(r=>({...r,_source:"live"})):[]; }catch(e){ return []; } }
+let SAMPLE=genSample();
+
+/* verify a record's hash */
+function verify(rec){ const c={...rec}; delete c.hash; delete c._source; return hashOf(c)===rec.hash; }
+
+/* ============ state + filters ============ */
+const S={item:"all",from:"",to:"",app:"all",role:"all",dim:"all",duty:"all",seat:"all",cover:"all",sample:true,showIds:false,sortItem:"n",sortDir:-1};
+
+function allRecords(){ const live=loadLive(); return S.sample? live.concat(SAMPLE): live; }
+function flatten(){
+  const rows=[]; allRecords().forEach(rec=>{ (rec.grades||[]).forEach(g=>{ rows.push({...g,date:rec.date,app:rec.app,recId:rec.id,src:rec._source}); }); });
+  return rows;
+}
+function inRange(d){ if(S.from&&d<S.from)return false; if(S.to&&d>S.to)return false; return true; }
+function seatMatch(r,v){ return r.seat && r.seat.indexOf(v)===0; }
+function passExcept(r,except){
+  if(!inRange(r.date))return false;
+  if(except!=="item"&&S.item!=="all"&&r.code!==S.item)return false;
+  if(except!=="app"&&S.app!=="all"&&r.app!==S.app)return false;
+  if(except!=="role"&&S.role!=="all"&&r.role!==S.role)return false;
+  if(except!=="dim"&&S.dim!=="all"&&r.dim!==S.dim)return false;
+  if(except!=="duty"&&S.duty!=="all"&&r.duty!==S.duty)return false;
+  if(except!=="seat"&&S.seat!=="all"&&!seatMatch(r,S.seat))return false;
+  return true;
+}
+function baseFilter(rows,ignoreItem){ return rows.filter(r=>passExcept(r,ignoreItem?"item":null)); }
+
+/* ============ rendering ============ */
+function el(id){return document.getElementById(id);}
+function stats(rows){
+  let n=0,sum=0,good=0,deb=0,bad=0; const dist={"5":0,"4":0,"3":0,"2":0,"1":0,"N/A":0};
+  rows.forEach(r=>{ const t=tier(r.grade),num=gnum(r.grade);
+    const bucket=r.grade==="N/A"?"N/A":String(num); if(dist[bucket]!==undefined)dist[bucket]++;
+    if(num!=null){sum+=num;n++;} if(t==="good")good++; else if(t==="deb")deb++; else bad++; });
+  const total=rows.length;
+  return {total,n,mean:n?sum/n:null,good,deb,bad,dist,
+    pctGood:total?good/total:0,pctBelow:total?bad/total:0};
+}
+function bar(label,val,max,color,right){
+  const w=max>0?Math.max(2,Math.round(val/max*100)):0;
+  return `<div class="barrow"><div class="lab">${label}</div><div class="bartrack"><div class="barfill" style="width:${w}%;background:${color}"></div></div><div class="lab" style="text-align:right">${right}</div></div>`;
+}
+const COL={good:"#2f7d53",deb:"#c8901a",bad:"#b22a24",purple:"#5B2A86"};
+
+function render(){
+  const rows=flatten();
+  const sel=baseFilter(rows,false);
+  const st=stats(sel);
+  const events=new Set(sel.map(r=>r.recId)).size;
+  const pilots=new Set(sel.map(r=>r.pilotEmp||r.pilotName)).size;
+  // source line
+  const live=loadLive().length;
+  el("srcLine").textContent=`${live} live submission${live===1?"":"s"} on this device · ${SAMPLE.length} sample events`;
+  // KPIs
+  el("kpis").innerHTML=[
+    ["v",st.total,"observations"],["v",st.mean==null?"—":st.mean.toFixed(2),"mean grade"],
+    ["good",fmtPct(st.pctGood),"meets standard (4–5)"],["bad",fmtPct(st.pctBelow),"below standard"],
+    ["v",events,"events"],["v",pilots,"pilots"]
+  ].map(k=>`<div class="kpi ${k[0]==='good'?'good':k[0]==='bad'?'bad':''}"><div class="v">${k[1]}</div><div class="l">${k[2]}</div></div>`).join("");
+  // distribution
+  const it=S.item==="all"?"All items":`${S.item} — ${NAME[S.item]||""}`;
+  el("distTitle").textContent="Grade distribution";
+  el("distCap").textContent=it+" · "+(S.from||"start")+" → "+(S.to||"today");
+  const dmax=Math.max(1,...Object.values(st.dist));
+  const dorder=[["5","5 — Excellent",COL.good],["4","4 — Standard",COL.good],["3","3 — Std w/ debrief",COL.deb],["2","2 — Below",COL.bad],["1","1 — Unsat",COL.bad],["N/A","N/A",COL.bad]];
+  el("dist").innerHTML = st.total? dorder.map(([k,l,c])=>bar(l,st.dist[k],dmax,c,st.dist[k])).join("") : `<div class="empty">No observations for this selection.</div>`;
+  // trend by month
+  const bym={}; sel.forEach(r=>{ const m=r.date.slice(0,7); (bym[m]=bym[m]||[]).push(r); });
+  const months=Object.keys(bym).sort();
+  el("trend").innerHTML = months.length? months.map(m=>{ const s=stats(bym[m]); return bar(m,s.mean||0,5,COL.purple,(s.mean?s.mean.toFixed(2):"—")+" · "+s.total); }).join("") : `<div class="empty">No observations.</div>`;
+  // by dimension
+  const dims=["Handling","SOP","Automation","CRM"]; const dsel=rows.filter(r=>passExcept(r,"dim"));
+  el("byDim").innerHTML=dims.map(dm=>{ const s=stats(dsel.filter(r=>r.dim===dm)); if(!s.total)return bar(dm,0,5,COL.purple,"—");
+    return `<div class="barrow"><div class="lab">${dm}</div><div class="bartrack"><div class="barfill" style="width:${Math.round((s.mean||0)/5*100)}%;background:${COL.purple}"></div></div><div class="lab" style="text-align:right">${(s.mean?s.mean.toFixed(2):"—")} · <span style="color:${COL.bad}">${fmtPct(s.pctBelow)}▾</span></div></div>`;
+  }).join("");
+  // PF vs PM · CA vs FO · seat
+  function cmpBar(lab,s){ return `<div class="barrow"><div class="lab">${lab}</div><div class="bartrack"><div class="barfill" style="width:${Math.round((s.mean||0)/5*100)}%;background:${COL.purple}"></div></div><div class="lab" style="text-align:right">${(s.mean?s.mean.toFixed(2):"—")} · <span style="color:${COL.bad}">${fmtPct(s.pctBelow)}▾</span> · ${s.total}</div></div>`; }
+  const rsel=rows.filter(r=>passExcept(r,"role"));
+  el("byRole").innerHTML=["PF","PM"].map(rl=>cmpBar(rl,stats(rsel.filter(r=>r.role===rl)))).join("");
+  const duel=rows.filter(r=>passExcept(r,"duty"));
+  el("byDuty").innerHTML=[["CA","Captain (CA)"],["FO","First Officer (FO)"],["Seat Support","Seat Support"]].map(([v,l])=>{ const st2=stats(duel.filter(r=>r.duty===v)); if(!st2.total&&v==="Seat Support")return ""; return cmpBar(l,st2); }).join("")||`<div class="empty">No data.</div>`;
+  const ssel=rows.filter(r=>passExcept(r,"seat"));
+  el("bySeat").innerHTML=[["Left","Left seat"],["Right","Right seat"]].map(([v,l])=>cmpBar(l,stats(ssel.filter(r=>seatMatch(r,v))))).join("");
+  // item summary (ignore item filter)
+  const isel=baseFilter(rows,true); const byc={};
+  isel.forEach(r=>{ (byc[r.code]=byc[r.code]||[]).push(r); });
+  const covf=S.cover;
+  const withData=CAT.filter(function(r){return byc[r[0]]&&byc[r[0]].length;}).length;
+  el("covLine").textContent = CAT.length+" qualification standards in the PPDB · "+Object.keys(COVER).length+" currently instrumented · "+withData+" with data in this window";
+  let cats=CAT.filter(function(r){ var c=r[0];
+    if(covf==="inst") return !!COVER[c];
+    if(covf==="data") return !!(byc[c]&&byc[c].length);
+    if(covf==="nodata") return !(byc[c]&&byc[c].length);
+    return true; });
+  let itemRows=cats.map(function(r){ var code=r[0], arr=byc[code]||[]; var s=stats(arr);
+    let worst="—"; ["N/A","1","2","3","4","5"].some(function(g){ if(arr.some(function(x){return (x.grade==="N/A"?"N/A":String(gnum(x.grade)))===g;})){worst=g;return true;} return false;});
+    return {code:code,name:NAME[code]||"",cov:COVER[code]||"",n:s.total,mean:s.mean||0,good:s.pctGood,below:s.pctBelow,worst:worst}; });
+  const dir=S.sortDir; itemRows.sort((a,b)=>{ let x=a[S.sortItem],y=b[S.sortItem]; if(typeof x==="string"){return x<y?-dir:x>y?dir:0;} return (x-y)*dir; });
+  function covTag(c){ return c?c:"not scheduled"; }
+  el("itemBody").innerHTML= itemRows.length? itemRows.map(r=>`<tr data-code="${r.code}" style="cursor:pointer">
+    <td><b>${r.code}</b> <span class="src">${covTag(r.cov)}</span></td><td>${r.name}</td><td class="num">${r.n||"—"}</td>
+    <td class="num">${r.n?r.mean.toFixed(2):"—"}</td><td class="num">${r.n?fmtPct(r.good):"—"}</td>
+    <td class="num">${r.n?`<span class="pill ${r.below>0.12?'p-bad':r.below>0?'p-deb':'p-good'}">${fmtPct(r.below)}</span>`:`<span class="src">no data</span>`}</td>
+    <td>${r.worst}</td></tr>`).join("") : `<tr><td colspan="7" class="empty">No items.</td></tr>`;
+  // below-standard log
+  const below=sel.filter(r=>tier(r.grade)==="bad").sort((a,b)=>a.date<b.date?1:-1);
+  el("belowN").textContent="· "+below.length+" in selection";
+  el("pidHdr").style.display=S.showIds?"":"none";
+  el("belowBody").innerHTML= below.length? below.slice(0,200).map(r=>`<tr>
+    <td class="mono">${r.date}</td><td class="src">${r.app}</td><td><b>${r.code}</b> ${NAME[r.code]||""}</td>
+    <td>${r.dim}</td><td>${r.role}</td><td>${r.duty||"—"}</td><td class="src">${(r.seat||"—").replace(" Seat","")}</td><td><span class="pill p-bad">${r.grade}</span></td>
+    ${S.showIds?`<td class="src">${r.pilotName||""} ${r.pilotEmp?("· "+r.pilotEmp):""}</td>`:""}
+    <td>${(r.stds||[]).join("; ")}${r.note?` <span class="src">— ${r.note}</span>`:""}</td></tr>`).join("") : `<tr><td colspan="10" class="empty">No below-standard observations in this selection.</td></tr>`;
+  // integrity
+  const recs=allRecords(); let okc=0,bad2=0; recs.forEach(r=>{ verify(r)?okc++:bad2++; });
+  el("integrity").innerHTML=`<span class="${bad2?'warn':'ok'}">${okc}/${recs.length} records verified</span> — integrity seals recomputed and matched.${bad2?` <span class="warn">${bad2} altered!</span>`:" No record has been altered."}`;
+}
+
+/* ============ FAA PPDB (de-identified, Seat Support excluded) ============ */
+function esc(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function csvCell(x){ x=String(x==null?"":x); return /[",\n]/.test(x)? '"'+x.replace(/"/g,'""')+'"' : x; }
+function produceFAAPPDB(){
+  const recs=allRecords().filter(r=> inRange(r.date) && (S.app==="all"||r.app===S.app));
+  let obs=[], ssExcl=0; const srcs=[];
+  recs.forEach(function(rec){
+    srcs.push({id:rec.id,app:rec.app,date:rec.date,hash:rec.hash,src:rec._source||"live",verified:verify(rec)});
+    (rec.grades||[]).forEach(function(g){
+      if(g.duty==="Seat Support"){ ssExcl++; return; }
+      obs.push({date:rec.date,curric:rec.curriculum||"",app:rec.app,code:g.code,type:(TYPE[g.code]||""),
+        skill:g.dim,role:g.role,seat:(g.seat||"").replace(" Seat",""),
+        pic:(g.duty==="CA"?"PIC":g.duty==="FO"?"SIC":""),grade:g.grade,reason:(g.stds||[]).join("; ")});
+    });
+  });
+  if(!obs.length){ alert("No observations in the current date window / instrument filter."); return; }
+  const byT={}; obs.forEach(function(o){ (byT[o.code]=byT[o.code]||[]).push(o); });
+  const taskRows=Object.keys(byT).sort().map(function(c){ var st2=stats(byT[c]); return {code:c,n:st2.total,mean:st2.mean,below:st2.pctBelow}; });
+  const period=(S.from||"start")+" to "+(S.to||"today");
+  const gen=new Date().toISOString().replace("T"," ").slice(0,16)+" UTC";
+  const inst=S.app==="all"?"All instruments":S.app;
+  const csvHead=["Date","Curriculum","Event","Task","Type","Skill","Role","Seat","DutyPos","Grade","Reason(s)"];
+  let csv=csvHead.join(",")+"\n";
+  obs.forEach(function(o){ csv+=[o.date,o.curric,o.app,o.code,o.type,o.skill,o.role,o.seat,o.pic,o.grade,o.reason].map(csvCell).join(",")+"\n"; });
+  const csvB64="data:text/csv;charset=utf-8;base64,"+btoa(unescape(encodeURIComponent(csv)));
+  const detail=obs.map(function(o){ return `<tr><td>${esc(o.date)}</td><td>${esc(o.curric)}</td><td>${esc(o.app)}</td><td><b>${esc(o.code)}</b></td><td>${esc(o.type)}</td><td>${esc(o.skill)}</td><td>${esc(o.role)}</td><td>${esc(o.seat)}</td><td>${esc(o.pic)}</td><td>${esc(o.grade)}</td><td>${esc(o.reason)}</td></tr>`; }).join("");
+  const tsum=taskRows.map(function(t){ return `<tr><td><b>${esc(t.code)}</b></td><td>${esc(NAME[t.code]||"")}</td><td>${esc(TYPE[t.code]||"")}</td><td style="text-align:right">${t.n}</td><td style="text-align:right">${t.mean?t.mean.toFixed(2):"—"}</td><td style="text-align:right">${(t.below*100).toFixed(0)}%</td></tr>`; }).join("");
+  const srcRows=srcs.map(function(x){ return `<tr><td class=mono>${esc(x.id)}</td><td>${esc(x.app)}</td><td>${esc(x.date)}</td><td class=mono>${esc(x.hash)}</td><td>${x.verified?"✓ verified":"⚠ altered"}</td><td>${esc(x.src)}</td></tr>`; }).join("");
+  const html=`<!doctype html><html><head><meta charset=utf-8><title>FAA PPDB Submission (practice)</title>
+  <style>body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c2531;margin:24px;font-size:12px}
+   h1{font-size:18px;margin:0 0 2px;color:#16273f} h2{font-size:14px;color:#16273f;border-bottom:2px solid #c8901a;padding-bottom:3px;margin:18px 0 8px}
+   .sub{color:#555} .banner{background:#fbf3df;border:1px solid #e6c65a;border-radius:8px;padding:8px 12px;margin:12px 0}
+   .note{background:#eef7f0;border:1px solid #bfe0c9;border-radius:8px;padding:8px 12px;margin:10px 0}
+   table{border-collapse:collapse;width:100%;font-size:11px;margin:6px 0} th,td{border:1px solid #cfd6e0;padding:4px 6px;text-align:left} th{background:#16273f;color:#fff}
+   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+   .btns{margin:8px 0} button,a.dl{background:#5B2A86;color:#fff;border:0;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;margin-right:8px}
+   @media print{.btns{display:none} body{margin:8mm}}</style></head><body>
+   <div class="btns"><button onclick="window.print()">Print / Save PDF</button><a class="dl" href="${csvB64}" download="FAA_PPDB_${(S.from||"all")}_${(S.to||"today")}.csv">Download CSV</a></div>
+   <h1>Advanced Qualification Program — Performance / Proficiency Data (PPDB)</h1>
+   <div class="sub">Pilot (B747) · De-identified FAA submission — <b>PRACTICE / PROOF OF CONCEPT</b></div>
+   <div class="banner"><b>Reporting period:</b> ${esc(period)} &nbsp;·&nbsp; <b>Instrument:</b> ${esc(inst)} &nbsp;·&nbsp; <b>Generated:</b> ${esc(gen)}<br><b>${obs.length}</b> graded observations · <b>${taskRows.length}</b> tasks · <b>${srcs.length}</b> source records.</div>
+   <div class="note"><b>De-identified:</b> no crewmember names or employee numbers included. <b>Seat Support excluded:</b> Seat Support crewmembers are assigned no performance ratings per the AQP Manual and are not part of this submission (${ssExcl} row${ssExcl===1?"":"s"} excluded).</div>
+   <h2>Task summary (per objective)</h2>
+   <table><thead><tr><th>Task</th><th>Name</th><th>Type</th><th style="text-align:right">Obs</th><th style="text-align:right">Mean</th><th style="text-align:right">% below</th></tr></thead><tbody>${tsum}</tbody></table>
+   <h2>Performance data — de-identified detail (${obs.length} rows)</h2>
+   <table><thead><tr><th>Date</th><th>Curric</th><th>Event</th><th>Task</th><th>Type</th><th>Skill</th><th>Role</th><th>Seat</th><th>Duty pos</th><th>Grade</th><th>Reason(s)</th></tr></thead><tbody>${detail}</tbody></table>
+   <h2>Source records &amp; integrity seals</h2>
+   <table><thead><tr><th>Submission ID</th><th>Event</th><th>Date</th><th>Integrity hash</th><th>Status</th><th>Source</th></tr></thead><tbody>${srcRows}</tbody></table>
+  </body></html>`;
+  const w=window.open("","_blank");
+  if(!w){ alert("Pop-up blocked — allow pop-ups to open the FAA PPDB report."); return; }
+  w.document.write(html); w.document.close();
+  el("faaNote").textContent="Produced "+obs.length+" observations · "+ssExcl+" Seat Support excluded.";
+}
+
+/* ============ Seat Support report (internal — to Standards Captain + Director Training) ============ */
+const SS_TO="John.Schumacher@AtlasAir.com,Adolfo.Cortes@AtlasAir.com";
+function produceSSReport(){
+  const recs=allRecords().filter(function(r){ return inRange(r.date) && (S.app==="all"||r.app===S.app); });
+  let obs=[];
+  recs.forEach(function(rec){ (rec.ss||[]).forEach(function(o){ obs.push(Object.assign({},o,{date:rec.date,app:rec.app,curric:rec.curriculum||"",recId:rec.id})); }); });
+  if(!obs.length){ alert("No Seat Support observations in the current date window / instrument filter."); return; }
+  const byP={}; obs.forEach(function(o){ var k=(o.pilotEmp||o.pilotName||"—"); (byP[k]=byP[k]||{name:o.pilotName||"—",emp:o.pilotEmp||"",rows:[]}).rows.push(o); });
+  const byItem={}; obs.forEach(function(o){ byItem[o.code]=(byItem[o.code]||0)+1; });
+  const recur=Object.keys(byItem).filter(function(c){return byItem[c]>1;}).sort(function(a,b){return byItem[b]-byItem[a];});
+  const pilots=Object.keys(byP);
+  const period=(S.from||"start")+" to "+(S.to||"today");
+  const gen=new Date().toISOString().replace("T"," ").slice(0,16)+" UTC";
+  const inst=S.app==="all"?"All instruments":S.app;
+  let body="INTERNAL — NOT AN FAA RECORD.\nSeat Support (Crewmember 2) internal performance notes for the calibration / standardization program.\n\n";
+  body+="Reporting period: "+period+"    Instrument: "+inst+"\n";
+  body+=obs.length+" Seat Support observations across "+pilots.length+" crewmember(s).\n";
+  if(recur.length) body+="Recurring items: "+recur.map(function(c){return c+" ("+byItem[c]+")";}).join(", ")+"\n";
+  body+="\n";
+  pilots.forEach(function(k){ var p=byP[k]; body+=p.name+(p.emp?(" (Emp "+p.emp+")"):"")+":\n";
+    p.rows.forEach(function(o){ body+="  \u2022 "+o.date+"  "+o.app+" "+o.code+" "+(o.name||"")+" ["+o.role+"] \u2014 "+((o.stds||[]).join("; "))+(o.note?("; "+o.note):"")+"\n"; });
+    body+="\n"; });
+  body+="Generated "+gen+" from the AQP Data Test Group dashboard (proof of concept).";
+  const subject="Seat Support internal report \u2014 "+period+" ("+obs.length+" obs, "+pilots.length+" crew)";
+  const mailto="mailto:"+SS_TO+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+  const rowsHtml=obs.slice().sort(function(a,b){return a.date<b.date?1:-1;}).map(function(o){ return `<tr><td>${esc(o.date)}</td><td>${esc(o.app)}</td><td><b>${esc(o.code)}</b> ${esc(o.name||"")}</td><td>${esc(o.role)}</td><td>${esc(o.pilotName||"")}${o.pilotEmp?(" \u00b7 "+esc(o.pilotEmp)):""}</td><td>${esc((o.stds||[]).join("; "))}${o.note?(" \u2014 <i>"+esc(o.note)+"</i>"):""}</td></tr>`; }).join("");
+  const recurHtml=recur.length? recur.map(function(c){return esc(c)+" ("+byItem[c]+")";}).join(", ") : "none";
+  const html=`<!doctype html><html><head><meta charset=utf-8><title>Seat Support Report (internal)</title>
+  <style>body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c2531;margin:24px;font-size:12px}
+   h1{font-size:18px;margin:0 0 2px;color:#2b1a45} h2{font-size:14px;color:#2b1a45;border-bottom:2px solid #5B2A86;padding-bottom:3px;margin:16px 0 8px}
+   .sub{color:#555}.banner{background:#f4f0fb;border:1px solid #d9cbef;border-radius:8px;padding:8px 12px;margin:12px 0}
+   .warn{background:#fdecea;border:1px solid #f3b7b1;border-radius:8px;padding:8px 12px;margin:10px 0;color:#7a1e18}
+   table{border-collapse:collapse;width:100%;font-size:11px} th,td{border:1px solid #cfd6e0;padding:4px 6px;text-align:left} th{background:#2b1a45;color:#fff}
+   .btns{margin:8px 0} button,a.dl{background:#5B2A86;color:#fff;border:0;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;margin-right:8px}
+   @media print{.btns{display:none} body{margin:8mm}}</style></head><body>
+   <div class="btns"><a class="dl" href="${mailto}">\u2709 Email to Standards &amp; Director Training</a><button onclick="window.print()">Print / Save PDF</button></div>
+   <h1>Seat Support \u2014 Internal Calibration Report</h1>
+   <div class="sub">Pilot (B747) AQP \u00b7 <b>INTERNAL \u2014 NOT AN FAA RECORD</b></div>
+   <div class="warn"><b>Seat Support (Crewmember 2) is assigned no performance ratings</b> and is excluded from the FAA submission (AQP Manual). These notes are internal only, for the instructor calibration / standardization program.</div>
+   <div class="banner"><b>Reporting period:</b> ${esc(period)} &nbsp;\u00b7&nbsp; <b>Instrument:</b> ${esc(inst)} &nbsp;\u00b7&nbsp; <b>Generated:</b> ${esc(gen)}<br><b>${obs.length}</b> observations \u00b7 <b>${pilots.length}</b> crewmember(s) \u00b7 <b>Recurring items:</b> ${recurHtml}<br><b>To:</b> Standards Captain (John Schumacher) \u00b7 Director, Training B747 (Adolfo Cortes)</div>
+   <h2>Observations</h2>
+   <table><thead><tr><th>Date</th><th>Event</th><th>Item</th><th>Role</th><th>Seat Support crewmember</th><th>Standard(s) / note</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+  </body></html>`;
+  const w=window.open("","_blank"); if(!w){ alert("Pop-up blocked \u2014 allow pop-ups to open the report."); return; }
+  w.document.write(html); w.document.close();
+  el("ssNote").textContent=obs.length+" Seat Support observations \u00b7 "+pilots.length+" crew.";
+}
+
+/* ============ wire controls ============ */
+function fillItems(){
+  const sel=el("fItem"); let h='<option value="all">All items</option>';
+  const byCh={}; CAT.forEach(function(r){ (byCh[r[3]]=byCh[r[3]]||[]).push(r); });
+  Object.keys(byCh).sort(function(a,b){return (+a)-(+b);}).forEach(function(ch){
+    h+='<optgroup label="'+ch+' · '+(AREAS[ch]||"")+'">';
+    byCh[ch].forEach(function(r){ var cov=COVER[r[0]]?(" ["+COVER[r[0]]+"]"):" [not scheduled]";
+      h+='<option value="'+r[0]+'">'+r[0]+" — "+r[1]+cov+'</option>'; });
+    h+='</optgroup>';
+  });
+  sel.innerHTML=h;
+}
+function seg(id,key){ el(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return; S[key]=b.dataset.v; [...el(id).children].forEach(x=>x.classList.toggle("on",x===b)); render(); }); }
+function init(){
+  fillItems();
+  el("fItem").addEventListener("change",e=>{S.item=e.target.value;render();});
+  el("fFrom").addEventListener("change",e=>{S.from=e.target.value;render();});
+  el("fTo").addEventListener("change",e=>{S.to=e.target.value;render();});
+  seg("fApp","app"); seg("fRole","role"); seg("fDim","dim"); seg("fDuty","duty"); seg("fSeat","seat");
+  el("presets").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return; const d=+b.dataset.d;
+    if(d===0){S.from="";S.to="";} else { const to=new Date("2026-07-13T00:00:00Z"); const from=new Date(to); from.setUTCDate(from.getUTCDate()-d); S.to=iso(to);S.from=iso(from);} el("fFrom").value=S.from;el("fTo").value=S.to; render(); });
+  el("fCover").addEventListener("change",e=>{S.cover=e.target.value;render();});
+  el("fSample").addEventListener("change",e=>{S.sample=e.target.checked;render();});
+  el("showIds").addEventListener("change",e=>{S.showIds=e.target.checked;render();});
+  el("itemTbl").querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ const k=th.dataset.s; if(!k)return; if(S.sortItem===k)S.sortDir*=-1; else {S.sortItem=k;S.sortDir=(k==="code"||k==="name"||k==="worst")?1:-1;} render(); }));
+  el("itemBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-code]"); if(!tr)return; S.item=tr.dataset.code; el("fItem").value=S.item; render(); window.scrollTo({top:0,behavior:"smooth"}); });
+  el("faaBtn").addEventListener("click",produceFAAPPDB);
+  el("ssBtn").addEventListener("click",produceSSReport);
+  el("clearLive").addEventListener("click",()=>{ if(confirm("Remove live submissions stored on this device? (Sample data is unaffected.)")){ try{localStorage.removeItem(PPDB_KEY);}catch(e){} render(); } });
+  render();
+}
+init();
+</script>
+</body>
+</html>
