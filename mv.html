@@ -993,7 +993,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 const GRADES = ["5","4","3","2","2-RP","2-RF","1","1-RP","1-RF","N/A"];
 const BELOW = new Set(["3","2","2-RP","2-RF","1","1-RP","1-RF"]);
 /* ---- document version (bump on each update) ---- */
-const VERSION = "2026.10.25.4";
+const VERSION = "2026.10.25.5";
 const VERSION_DATE = "2026-10-25";
 /* ---- data models ---- */
 // rows present per exercise, in AIMS/PF then PM order
@@ -2928,6 +2928,7 @@ function toast(msg){ let t=document.getElementById("toast"); if(!t){ t=document.
 /* generic modal */
 function closeModal(){ document.querySelectorAll(".mo-overlay").forEach(o=>o.remove()); }
 const CHANGELOG=[
+ {v:"2026.10.25.5",date:"2026-10-25",notes:["AIMS integration demo: new ⤓ Load crew (AIMS) button next to New crew. Shows how it will work once the AIMS API is connected — the signed-in I/E fills automatically, Load crew lists your assigned events for the day (pick one if there are several), and loading fills the date, FSTD, both crewmembers, Module Attempt Status and ST. SAMPLE DATA ONLY — it does not connect to AIMS yet."]},
  {v:"2026.10.25.4",date:"2026-10-25",notes:["Crew rows: shorter Duty box; the Swap button now sits in its own column beside the two pilot rows, and a row wraps to a second line on a narrower iPad screen instead of running under the Swap button."]},
  {v:"2026.10.25.3",date:"2026-10-25",notes:["Crew rows tidied: “Special Tracking” is now labeled ST (the AIMS abbreviation) with an ⓘ button that explains it — Briefed has one too. Frees room on the iPad crew line."]},
  {v:"2026.10.25.2",date:"2026-10-25",notes:["Fix: changing a pilot's T/O, Ldg or Special Tracking box could overwrite that pilot's Duty behind the scenes (the screen still showed CA/FO), which could throw off the seat and N/A rules for that crew. The Duty box is now the only thing that sets Duty. If a crew was graded after changing T/O, Ldg or Special Tracking, re-check its Duty boxes and N/A cells.","AIMS: Briefing completed is now recorded for the MV module — a Briefing completed (Yes/No) box beside each pilot on the MV sheet, shown in the AIMS Module Status line and on the PDF AIMS page (and in the Data Test Group submitted record, with the time it was marked).", "After presenting the CQMV.1 briefing through the Event Plan, the app offers to record Briefing completed for both crewmembers.", "SPOT AIMS entry order confirmed: 2.5.1 RTO is now on the AIMS form, last — no order change."]},
@@ -3963,5 +3964,144 @@ document.addEventListener("click",function(e){
 }, true);
 </script>
 <style>/* crew rows: Swap sits in its own column and the rows wrap instead of running under it */.crewwrap{display:grid !important;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:center;padding-right:0 !important}.crewwrap>.meta{grid-column:1;flex-wrap:wrap !important;overflow:visible !important;row-gap:6px;margin:4px 0 !important}.crewwrap>.swapbtn{position:static !important;grid-column:2;grid-row:1 / span 2;align-self:center;white-space:nowrap}.crewwrap .meta select.dutysel[data-person]:not([data-cs]){width:78px !important;min-width:0 !important}.crewwrap .meta select.dutysel[data-take]{width:132px !important;min-width:0 !important}.crewwrap .meta input[data-field="name"]{width:115px !important}.crewwrap .meta input[data-field="emp"]{width:70px !important}</style>
+<style>
+/* ===== AIMS "Load crew" — DEMO of the planned AIMS integration (sample data only) ===== */
+.tbtn2.aimsload{background:#0f6b5c;border-color:#0f6b5c;color:#fff;font-weight:800}
+.aimsdemo-tag{display:inline-block;background:#f2c14e;color:#3f3720;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900;letter-spacing:.04em;vertical-align:middle}
+.ad-sign{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#e8f5f2;border:1px solid #9fd3c7;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#0f4c41}
+.ad-sign b{font-size:14px}
+.ad-sign button{margin-left:auto;border:1px solid #9fd3c7;background:#fff;border-radius:7px;padding:5px 10px;font-weight:800;font-size:12px;color:#0f4c41;cursor:pointer}
+.ad-day{display:flex;align-items:center;gap:8px;margin:2px 0 8px;font-size:12px;color:#5b6572}
+.ad-ev{border:1.5px solid #c9d2de;border-radius:11px;padding:10px 12px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;background:#fff}
+.ad-ev.match{border-color:#0f6b5c;background:#f3fbf9}
+.ad-ev.other{opacity:.62}
+.ad-ev.done{opacity:.55}
+.ad-t{font:800 15px ui-monospace,Menlo,monospace;color:#1b2430;grid-row:1 / span 2}
+.ad-h{font-weight:800;font-size:14px;color:#1b2430}
+.ad-s{font-size:12px;color:#46505e;line-height:1.4}
+.ad-crew{grid-column:2;font-size:12.5px;color:#1b2430}
+.ad-crew span{display:inline-block;background:#eef2f7;border-radius:6px;padding:2px 7px;margin:2px 4px 0 0}
+.ad-crew span.st{background:#fdecea;color:#a3271b}
+.ad-go{grid-column:3;grid-row:1 / span 2;border:0;background:#0f6b5c;color:#fff;border-radius:9px;padding:10px 14px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+.ad-go[disabled]{background:#c9d2de;color:#5b6572;cursor:default}
+.ad-note{font-size:11.5px;color:#6b7684;line-height:1.45;margin-top:10px;border-top:1px dashed #c9d2de;padding-top:8px}
+#aimsLoadedBadge{display:inline-flex;align-items:center;gap:6px;background:#e8f5f2;border:1px solid #9fd3c7;color:#0f4c41;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:800;margin-left:6px}
+</style>
+<script>
+/* AIMS integration DEMO — shows how "Load crew" will work once the AIMS API is connected:
+   the instructor is signed in (I/E filled automatically), Load crew lists the instructor's
+   assigned events for the day, the instructor picks one, and the crew, FSTD, attempt status
+   and ST flag fill in. Everything here is SAMPLE DATA — nothing is read from AIMS yet. */
+(function(){
+  var APP = (typeof SCEN!=="undefined") ? "LOE" : (typeof SPOT_EVENTS!=="undefined") ? "MV" : (/MT2/.test(document.title) ? "MT2" : "MT");
+  var MYCUR = {MV:"CQMV.1", MT:"CQMT1.1", MT2:"CQMT2.1", LOE:"CQLOE.1"}[APP];
+  var APPNAME = {"CQMV.1":"MV + SPOT", "CQMT1.1":"MT", "CQMT2.1":"MT2", "CQLOE.1":"LOE"};
+  var SIGN_KEY="AQP_AIMSDEMO_SIGNIN_v1";
+  function h(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function today(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function signin(){ try{ var v=JSON.parse(localStorage.getItem(SIGN_KEY)||"null"); if(v&&v.name) return v; }catch(e){} return null; }
+  function setSignin(v){ try{ localStorage.setItem(SIGN_KEY, JSON.stringify(v)); }catch(e){} }
+  /* sample schedule — what the AIMS API would return for the signed-in I/E today */
+  function schedule(){
+    return [
+      {id:"EVT-0715", time:"0715–1115", cur:"CQMV.1", mod:"MV + SPOT", fstd:"1091", fstdTxt:"Boeing Miami · SIM 4 · B747-400 (FAA 1091)",
+       crew:[{name:"SAMPLE, ALEX",emp:"900101",duty:"CA",take:"Initial Attempt",st:"No"},{name:"SAMPLE, BLAKE",emp:"900102",duty:"FO",take:"Initial Attempt",st:"No"}]},
+      {id:"EVT-1200", time:"1200–1600", cur:"CQMV.1", mod:"MV + SPOT", fstd:"1092", fstdTxt:"Atlas Miami · SIM 2 · B747-400 (FAA 1092)",
+       crew:[{name:"SAMPLE, CASEY",emp:"900103",duty:"FO",take:"Repeat Attempt 1",st:"Yes"},{name:"(I/E Seat Support)",emp:"",duty:"Seat Support",take:"Initial Attempt",st:"No",ss:true}]},
+      {id:"EVT-1300", time:"1300–1700", cur:"CQMT2.1", mod:"MT2 (SPOT)", fstd:"584", fstdTxt:"Boeing Miami · SIM 3 · B747-400 (FAA 584)",
+       crew:[{name:"SAMPLE, DREW",emp:"900104",duty:"CA",take:"Initial Attempt",st:"No"},{name:"SAMPLE, EMERY",emp:"900105",duty:"FO",take:"Initial Attempt",st:"No"}]},
+      {id:"EVT-1700", time:"1700–2100", cur:"CQLOE.1", mod:"LOE", scen:"B", fstd:"1264", fstdTxt:"Boeing Miami · SIM 4 · B747-8 (FAA 1264)",
+       crew:[{name:"SAMPLE, FINLEY",emp:"900106",duty:"CA",take:"Initial Attempt",st:"No"},{name:"SAMPLE, GRAY",emp:"900107",duty:"FO",take:"Initial Attempt",st:"No"}]},
+      {id:"EVT-1730", time:"1730–2030", cur:"CQMT1.1", mod:"MT (First Look + SPOT)", fstd:"722", fstdTxt:"Atlas Miami · SIM 1 · B747-400 (FAA 722)",
+       crew:[{name:"SAMPLE, HAYDEN",emp:"900108",duty:"CA",take:"Initial Attempt",st:"No"},{name:"SAMPLE, JORDAN",emp:"900109",duty:"CA",take:"Initial Attempt",st:"No"}]}
+    ];
+  }
+  function fillIE(si){ if(!si) return; try{ instructor.name=si.name; instructor.emp=si.emp; }catch(e){} }
+  function hasWork(){ try{ return CMSKEYS().some(function(k){ return (person[k].name||"").trim(); }); }catch(e){ return false; } }
+  function CMSKEYS(){ return APP==="LOE" ? ["cm1","cm2"] : ["pf1st","pf2nd"]; }
+  function apply(ev){
+    var si=signin();
+    var doIt=function(){
+      try{ if(typeof window.doNew==="function") window.doNew(); }catch(e){}
+      var ks=CMSKEYS();
+      try{ sessionDate=today(); dateUserSet=true; }catch(e){}
+      fillIE(si);
+      try{ setFstd(ev.fstd); }catch(e){}
+      ev.crew.forEach(function(c,i){ var k=ks[i];
+        person[k].name=c.ss?(si?si.name:""):c.name; person[k].emp=c.ss?(si?si.emp:""):c.emp;
+        duty[k]=c.duty; try{ take[k]=c.take; }catch(e){}
+        try{
+          if(APP==="MV"){ ["MV","SPOT"].forEach(function(x){ if(crewSession[x]&&crewSession[x][k]) crewSession[x][k].spec=c.st; }); }
+          else if(crewSession[k]) crewSession[k].spec=c.st;
+        }catch(e){}
+      });
+      if(APP==="LOE" && ev.scen){ try{ SC=ev.scen; if(typeof syncTabs==="function") syncTabs(); }catch(e){} }
+      window.AIMS_EVENT={id:ev.id, time:ev.time, cur:ev.cur, loadedAt:new Date().toISOString(), demo:true};
+      try{ localStorage.setItem("AQP_AIMSDEMO_EVENT_"+APP, JSON.stringify(window.AIMS_EVENT)); }catch(e){}
+      try{ autosave(); }catch(e){}
+      render(); badge(); closeModal();
+      toast("Loaded "+ev.id+" — "+ev.crew.filter(function(c){return !c.ss;}).map(function(c){return c.name;}).join(" / ")+" (sample data)");
+    };
+    if(hasWork()){
+      var m=document.createElement("div"); m.className="mo-msg";
+      m.innerHTML="Load <b>"+h(ev.mod)+" "+h(ev.time)+"</b> and start a fresh sheet for that crew?<br><br>The crew currently on this sheet will be cleared. Save it first if you still need it.";
+      showModal("Load crew from AIMS", m, [{label:"Load this crew", kind:"primary", onClick:doIt},{label:"Cancel", onClick:closeModal}]);
+    } else doIt();
+  }
+  function openLoad(){
+    var si=signin();
+    var w=document.createElement("div");
+    if(!si){
+      w.innerHTML='<div class="ad-sign" style="background:#fff8e6;border-color:#f0cf7a;color:#5c4400"><span>In the live version you are already signed in through Atlas sign-on (Duo), and your name fills the I/E box automatically. For this demo, confirm who is signed in:</span></div>'+
+        '<label class="mo-lbl">I/E name</label><input class="mo-input" data-ad="n" value="'+h((instructor&&instructor.name)||"")+'" placeholder="Last, First">'+
+        '<label class="mo-lbl" style="margin-top:8px">Employee #</label><input class="mo-input" data-ad="e" value="'+h((instructor&&instructor.emp)||"")+'" placeholder="000000">';
+      showModal("AIMS sign-in (demo)", w, [{label:"Sign in", kind:"primary", onClick:function(){ var n=w.querySelector('[data-ad="n"]').value.trim(), e=w.querySelector('[data-ad="e"]').value.trim(); if(!n){ toast("Enter your name"); return; } setSignin({name:n,emp:e}); fillIE({name:n,emp:e}); try{ autosave(); }catch(x){} render(); openLoad(); }},{label:"Cancel", onClick:closeModal}]);
+      return;
+    }
+    var ev=schedule(), cur=(window.AIMS_EVENT||{}).id;
+    var d=new Date(); var ds=d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+    var html='<div class="ad-sign">✓ Signed in to AIMS as <b>'+h(si.name)+'</b>'+(si.emp?' · Emp '+h(si.emp):'')+'<button type="button" data-ad="out">Switch I/E</button></div>'+
+      '<div class="ad-day"><span class="aimsdemo-tag">DEMO · SAMPLE DATA</span> Your assigned events — '+h(ds)+'</div>';
+    ev.forEach(function(e,i){
+      var mine=e.cur===MYCUR;
+      html+='<div class="ad-ev '+(mine?"match":"other")+(e.id===cur?" done":"")+'"><div class="ad-t">'+h(e.time)+'</div>'+
+        '<div><div class="ad-h">'+h(e.cur)+' · '+h(e.mod)+(e.scen?' ['+h(e.scen)+']':'')+'</div><div class="ad-s">'+h(e.fstdTxt)+' · '+h(e.id)+'</div></div>'+
+        (mine?'<button type="button" class="ad-go" data-ad="go" data-i="'+i+'">'+(e.id===cur?"Loaded ✓":"Load crew")+'</button>':'<button type="button" class="ad-go" disabled>Open in '+h(APPNAME[e.cur]||e.cur)+' app</button>')+
+        '<div class="ad-crew">'+e.crew.map(function(c){ return '<span class="'+(c.st==="Yes"?"st":"")+'">'+h(c.duty==="Seat Support"?"Seat Support (I/E)":c.duty+" · "+c.name+" · "+c.emp)+(c.take!=="Initial Attempt"?" · "+h(c.take):"")+(c.st==="Yes"?" · ST":"")+'</span>'; }).join("")+'</div></div>';
+    });
+    html+='<div class="ad-note"><b>How it works when AIMS is connected:</b> you sign in once with your Atlas credentials; the I/E name and Emp fill automatically. <b>Load crew</b> pulls the events AIMS has assigned to you today — if there is more than one, pick the right one. Events for another curriculum point you to that app. Loading fills the date, FSTD, both crewmembers (name, Emp, CA/FO or Seat Support), Module Attempt Status and ST from AIMS, so nothing is typed. After grading, Submit sends the record back to AIMS training records for the I/E to verify and sign.<br><br>This demo uses made-up crews (SAMPLE names, 9001xx Emp #s) and does not connect to AIMS.</div>';
+    w.innerHTML=html;
+    showModal("Load crew from AIMS", w, [{label:"Close", onClick:closeModal}]);
+    w.querySelectorAll('[data-ad="go"]').forEach(function(b){ b.addEventListener("click",function(){ apply(ev[+b.dataset.i]); }); });
+    var o=w.querySelector('[data-ad="out"]'); if(o) o.addEventListener("click",function(){ try{ localStorage.removeItem(SIGN_KEY); }catch(e){} openLoad(); });
+  }
+  function badge(){
+    var e=window.AIMS_EVENT, old=document.getElementById("aimsLoadedBadge"); if(old) old.remove();
+    if(!e) return;
+    var host=document.querySelector("#stage .head h1"); if(!host) return;
+    var b=document.createElement("span"); b.id="aimsLoadedBadge"; b.title="Crew loaded from AIMS (demo, sample data)"; b.textContent="⤓ AIMS "+e.id+" · "+e.time+" (demo)";
+    host.appendChild(b);
+  }
+  function addButton(){
+    if(document.querySelector('[data-tb="aimsload"]')) return;
+    var nb=document.querySelector('[data-tb="new"]'); if(!nb) return;
+    var b=document.createElement("button"); b.type="button"; b.className="tbtn2 aimsload"; b.dataset.tb="aimsload"; b.innerHTML="⤓ Load crew <small style=\"font-weight:700;opacity:.85\">(AIMS)</small>";
+    b.title="Load your assigned crew from AIMS (demo — sample data)";
+    b.addEventListener("click",function(e){ e.preventDefault(); e.stopPropagation(); if(window.SUBMITTED){ toast("This record is submitted & locked — tap New crew first."); return; } openLoad(); });
+    nb.parentNode.insertBefore(b, nb.nextSibling);
+  }
+  function wire(){
+    addButton();
+    try{ var v=JSON.parse(localStorage.getItem("AQP_AIMSDEMO_EVENT_"+APP)||"null"); if(v) window.AIMS_EVENT=v; }catch(e){}
+    // signed in: fill an empty I/E box automatically (as the live sign-on will)
+    var si=signin(); try{ if(si && !(instructor.name||"").trim()){ fillIE(si); render(); } }catch(e){}
+    if(typeof render==="function" && !render.__ad){ var _r=window.render; window.render=function(){ var x=_r.apply(this,arguments); try{ badge(); var s2=signin(); if(s2 && !(instructor.name||"").trim()){ fillIE(s2); var i1=document.querySelector('input[data-instr="name"]'), i2=document.querySelector('input[data-instr="emp"]'); if(i1) i1.value=s2.name; if(i2) i2.value=s2.emp; } }catch(e){} return x; }; window.render.__ad=1; }
+    if(typeof doNew==="function" && !doNew.__ad){ var _d=window.doNew; window.doNew=function(){ window.AIMS_EVENT=null; try{ localStorage.removeItem("AQP_AIMSDEMO_EVENT_"+APP); }catch(e){} return _d.apply(this,arguments); }; window.doNew.__ad=1; }
+    badge();
+  }
+  if(document.readyState!=="loading") setTimeout(wire,30); else document.addEventListener("DOMContentLoaded",function(){ setTimeout(wire,30); });
+})();
+</script>
+
 </body>
 </html>
