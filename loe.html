@@ -1302,7 +1302,7 @@ const SCEN = {
    ===================================================================== */
 const GRADES = ["5","4","3","2","2-RP","2-RF","1","1-RP","1-RF","N/A"];
 const BELOW = new Set(["3","2","2-RP","2-RF","1","1-RP","1-RF"]);
-const VERSION = "2026.11.03.2";
+const VERSION = "2026.11.03.3";
 const VERSION_DATE = "2026-11-03";
 const DIMS = [["H","Handling"],["SOP","SOP"],["A","Automation"],["CRM","CRM"]];
 const DIMNM = {H:"Handling",SOP:"SOP",A:"Automation",CRM:"CRM"};
@@ -2291,6 +2291,7 @@ function swapCrew(){
 }
 function checkUpdates(){ try{ if(window.top && window.top!==window){ window.top.location.reload(); return; } }catch(e){} try{ location.replace(location.pathname+"?v="+Date.now()); }catch(e){ location.reload(); } }
 const CHANGELOG=[
+ {v:"2026.11.03.3",date:"2026-11-03",notes:["Duplicate check: before Submit to Data Store, the app looks on this iPad and in the data store for an earlier record for the same pilot, module, date and Module Attempt Status. If one exists, Submit stops and shows it. To fix a wrong record, submit a correction with a reason — the new record replaces the earlier one in the dashboard and the FAA data export (both stay on file)."]},
  {v:"2026.11.03.2",date:"2026-11-03",notes:["Crew rows fit on one line on the iPad again: tighter spacing and smaller boxes, and the Attempt box shows a short label (Initial, Remedial 1, Repeat 1 …) — AIMS, the PDF and the record still use the full Module Attempt Status."]},
  {v:"2026.11.03.1",date:"2026-11-03",notes:["Briefed (Briefing completed) Yes/No beside each crewmember. It shows on the AIMS view, the PDF and (Data Test Group) the submitted record with the time it was marked. Presenting the CQLOE.1 briefing deck through the Event Plan offers to record it for the crew."]},
  {v:"2026.11.02.3",date:"2026-11-02",notes:["LOE 25% rule simplified: no pop-up at 2 unsatisfactory phases — the only alert is at the 3rd, telling you to stop the simulator (LOE Unsatisfactory)."]},
@@ -2479,7 +2480,7 @@ window.BRIEF_DONE_HOOK=function(deck){
       crew:CMS.map(function(cm){return {slot:cm,name:person[cm].name||"",emp:person[cm].emp||"",duty:duty[cm],seat:SEAT_LABEL[seatOf(cm)],briefingCompleted:(((crewSession[cm]||{}).brief)==="Yes"),briefingCompletedAt:((crewSession[cm]||{}).briefAt||"")};}),
       flightPF:flightPF, finals:finals, phaseFinals:phaseFinals, grades:grades, ses:ses, ss:[], comments:cmts,
       simDisc:{fstd:(simDisc.fstd||""), items:(simDisc.items||[]).slice()}, fstd:(fstdSel?{faa:fstdSel, label:fstdLabel(fstdById(fstdSel))}:null) };
-    rec.hash=hashOf(rec);
+    try{ rec.dupKey=window.dupKeyOf?window.dupKeyOf(rec):""; if(window.DUP_META&&window.DUP_META.supersedes){ rec.supersedes=window.DUP_META.supersedes; rec.correctionReason=window.DUP_META.reason; } }catch(e){} rec.hash=hashOf(rec);
     return rec;
   }
   function ppdbPush(rec){
@@ -2505,7 +2506,7 @@ window.BRIEF_DONE_HOOK=function(deck){
     if(!((person.cm1.name||"").trim()||(person.cm2.name||"").trim())) miss.push("at least one pilot name");
     if(!(sessionDate||"")) miss.push("date");
     if(miss.length){ toast("Enter "+miss.join(", ")+" before submitting."); return; }
-    var rec=buildSubmission();
+    var rec=buildSubmission(); if(window.DUP_GUARD && !window.__dupChecked){ window.DUP_GUARD(rec); return; }
     var nBelow=rec.grades.filter(function(g){return g.below;}).length;
     var needC=0; CMS.forEach(function(cm){ if(isSS(cm)) return; PHASES.forEach(function(p){ DIMS.forEach(function(dd){ if(!naReason(p.n,cm,dd[0]) && needsJust(p.n,cm,dd[0])) needC++; }); }); });
     var flagged=(rec.finals||[]).filter(function(f){return f.label==="Unsatisfactory"||f.label==="Incomplete";});
@@ -2890,6 +2891,81 @@ window.BRIEF_DONE_HOOK=function(deck){
       if(OPT.length) reg.active.postMessage({type:"aqp-warm", optional:true, urls:OPT.map(function(u){ return new URL(u, location.href).href; })});
     }).catch(function(){});
   });
+})();
+</script>
+
+<style>
+.dg-ov{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px}
+.dg-box{background:#fff;border-radius:14px;max-width:560px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1b2430;overflow:hidden}
+.dg-h{background:#7a1d12;color:#fff;font-weight:800;font-size:16px;padding:12px 16px}
+.dg-b{padding:14px 16px;font-size:14px;line-height:1.45;max-height:60vh;overflow:auto}
+.dg-rec{background:#fdf3f1;border:1px solid #f1c3bb;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:13px}
+.dg-b textarea{width:100%;box-sizing:border-box;min-height:64px;border:1px solid #c9d2de;border-radius:8px;padding:8px;font:14px -apple-system,Arial,sans-serif;margin-top:6px}
+.dg-f{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;flex-wrap:wrap}
+.dg-f button{border:0;border-radius:9px;padding:10px 14px;font:700 14px -apple-system,Arial,sans-serif;cursor:pointer;background:#e8edf3;color:#1b2430}
+.dg-f button.pri{background:#1b2a44;color:#fff}
+.dg-f button.warn{background:#a3271b;color:#fff}
+.dg-f button:disabled{opacity:.45}
+</style>
+<script>
+/* ===== Data Test Group — duplicate-submission check =====
+   Before Submit, look for an earlier record (on this iPad and in the cloud data store) for the same pilot,
+   same curriculum/module, same date and same Module Attempt Status. If found, Submit stops; the I/E may
+   cancel or submit a CORRECTION with a reason — the new record carries "supersedes", and the dashboard /
+   FAA data export count only the latest record. */
+(function(){
+  var SYNC="https://script.google.com/macros/s/AKfycbyhPHmGYBfYPyBmhKezwZnsXG3iXxw9OpwjAKQF0Ug73elpVqyA2TalkNBA4W0rbGZw/exec";
+  function h(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function modOf(r){ var f=(r.finals||[])[0]||{}, g=(r.grades||[])[0]||{}; var ex=f.ex||g.ex||""; return /^LOE-/.test(ex)?ex:""; }
+  /* one key per graded pilot: app | curriculum | module | date | pilot | attempt */
+  function pilotKeys(r){
+    var out=[], seen={};
+    try{ (r.finals||[]).forEach(function(f){
+      if(!f || f.duty==="Seat Support") return;
+      var id=String(f.pilotEmp||"").trim() || String(f.pilotName||"").trim().toUpperCase(); if(!id) return;
+      var tk=f.attempt||""; if(!tk){ var g=(r.grades||[]).filter(function(g){ return g.pilotEmp===f.pilotEmp && g.pilotName===f.pilotName; })[0]; tk=(g&&g.take)||""; }
+      var k=[r.app||"", r.curriculum||"", modOf(r), r.date||"", id, tk||"Initial Attempt"].join("|");
+      if(!seen[k]){ seen[k]=1; out.push(k); } }); }catch(e){}
+    return out;
+  }
+  window.dupKeyOf=function(r){ return pilotKeys(r).join(" + "); };
+  function localRecs(){ try{ var a=JSON.parse(localStorage.getItem("AQP_PPDB_v1")||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  function cloudRecs(){
+    return new Promise(function(res){ var done=false; var t=setTimeout(function(){ if(!done){ done=true; res(null); } },5000);
+      try{ fetch(SYNC,{cache:"no-store"}).then(function(r){ return r.json(); }).then(function(j){ if(done) return; done=true; clearTimeout(t); res((j&&Array.isArray(j.records))?j.records:[]); }).catch(function(){ if(!done){ done=true; clearTimeout(t); res(null); } }); }catch(e){ done=true; clearTimeout(t); res(null); } });
+  }
+  function fmtWhen(iso){ try{ var d=new Date(iso); return d.toLocaleDateString()+" "+d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso||""; } }
+  function pilotsOf(r){ return (r.finals||[]).filter(function(f){ return f && f.duty!=="Seat Support"; }).map(function(f){ return (f.pilotName||"?")+(f.pilotEmp?" ("+f.pilotEmp+")":""); }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(", "); }
+  function close(ov){ try{ ov.remove(); }catch(e){} }
+  function proceed(meta){ window.DUP_META=meta||null; window.__dupChecked=true; try{ window.onDataSubmit(); } finally { window.__dupChecked=false; window.DUP_META=null; } }
+
+  window.DUP_GUARD=function(rec){
+    var mine=pilotKeys(rec);
+    if(!mine.length){ proceed(null); return; }
+    var ov=document.createElement("div"); ov.className="dg-ov"; ov.innerHTML='<div class="dg-box"><div class="dg-h" style="background:#1b2a44">Checking for an earlier submission…</div><div class="dg-b">Looking on this iPad and in the data store.</div></div>'; document.body.appendChild(ov);
+    cloudRecs().then(function(cloud){
+      close(ov);
+      var all={}, list=[]; localRecs().concat(cloud||[]).forEach(function(r){ if(r && r.id && !all[r.id]){ all[r.id]=1; list.push(r); } });
+      var superseded={}; list.forEach(function(r){ if(r.supersedes) superseded[r.supersedes]=1; });
+      var hits=list.filter(function(r){ if(r.id===rec.id || superseded[r.id]) return false; var k=pilotKeys(r); return k.some(function(x){ return mine.indexOf(x)>=0; }); })
+                   .sort(function(a,b){ return String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")); });
+      if(!hits.length){ if(cloud===null){ try{ toast("Data store not reachable — checked this iPad only."); }catch(e){} } proceed(null); return; }
+      var last=hits[0];
+      var o=document.createElement("div"); o.className="dg-ov";
+      o.innerHTML='<div class="dg-box"><div class="dg-h">Already submitted</div><div class="dg-b">'+
+        'This crew, module, date and attempt were already submitted:'+
+        hits.slice(0,3).map(function(r){ return '<div class="dg-rec"><b>'+h(r.id)+'</b> · '+h(fmtWhen(r.submittedAt))+'<br>'+h(r.curriculum||r.app||"")+(modOf(r)?" ["+h(modOf(r).replace("LOE-",""))+"]":"")+' · '+h(r.date||"")+' · I/E '+h((r.instructor&&r.instructor.name)||"—")+'<br>'+h(pilotsOf(r))+'</div>'; }).join("")+
+        'Submitting again would count this event twice in the data.<br><br>If the earlier record was wrong, submit a <b>correction</b>: the new record replaces <b>'+h(last.id)+'</b> in the dashboard and the FAA data export (both stay on file).'+
+        '<div style="margin-top:10px;font-weight:700">Reason for the correction</div><textarea data-dgr placeholder="e.g. wrong grade entered on 6.8 for the FO"></textarea>'+
+        (cloud===null?'<div style="margin-top:8px;font-size:12px;color:#7a5b00">The data store was not reachable — this check used the records on this iPad only.</div>':'')+
+        '</div><div class="dg-f"><button type="button" class="warn" data-dgc disabled>Submit as correction</button><button type="button" class="pri" data-dgx>Cancel — do not submit</button></div></div>';
+      document.body.appendChild(o);
+      var ta=o.querySelector("[data-dgr]"), bc=o.querySelector("[data-dgc]");
+      ta.addEventListener("input",function(){ bc.disabled=ta.value.trim().length<4; });
+      o.querySelector("[data-dgx]").onclick=function(){ close(o); };
+      bc.onclick=function(){ var reason=ta.value.trim(); if(reason.length<4) return; close(o); proceed({supersedes:last.id, reason:reason}); };
+    });
+  };
 })();
 </script>
 

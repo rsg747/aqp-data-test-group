@@ -281,7 +281,10 @@ const S={item:"all",from:"",to:"",app:"all",role:"all",dim:"all",duty:"all",seat
 function allRecords(){
   const byId={}, merged=[];
   CLOUD.concat(loadLive()).forEach(function(r){ if(r&&r.id){ if(!byId[r.id]){ byId[r.id]=1; merged.push(r); } } else { merged.push(r); } });
-  return S.sample? merged.concat(SAMPLE): merged;
+  /* corrections: a record that another record "supersedes" is left out (both stay on file) */
+  const sup={}; merged.forEach(function(r){ if(r&&r.supersedes) sup[r.supersedes]=1; });
+  const live=merged.filter(function(r){ return !(r&&r.id&&sup[r.id]); });
+  return S.sample? live.concat(SAMPLE): live;
 }
 function flatten(){
   const rows=[]; allRecords().forEach(rec=>{ (rec.grades||[]).forEach(g=>{ rows.push({...g,date:rec.date,app:rec.app,recId:rec.id,src:rec._source}); }); });
