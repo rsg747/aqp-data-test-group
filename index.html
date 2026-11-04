@@ -602,6 +602,6 @@ init();
 })();
 </script>
 
-<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}@media (display-mode: standalone){body{padding-top:calc(env(safe-area-inset-top,0px) + 14px) !important}}</style>
+<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa body{padding-top:calc(max(env(safe-area-inset-top,0px),24px) + 8px) !important}html.aqp-pwa body::before{content:"";position:fixed;left:0;right:0;top:0;height:max(env(safe-area-inset-top,0px),24px);background:#0b1428;z-index:2147483000;pointer-events:none}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
 </body>
 </html>

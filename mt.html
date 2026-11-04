@@ -985,7 +985,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 const GRADES = ["5","4","3","2","2-RP","2-RF","1","1-RP","1-RF","N/A"];
 const BELOW = new Set(["3","2","2-RP","2-RF","1","1-RP","1-RF"]);
 /* ---- document version (bump on each update) ---- */
-const VERSION = "2026.11.04.2";
+const VERSION = "2026.11.04.3";
 const VERSION_DATE = "2026-11-04";
 /* ---- data models ---- */
 // rows present per exercise, in AIMS/PF then PM order
@@ -2737,6 +2737,7 @@ function toast(msg){ let t=document.getElementById("toast"); if(!t){ t=document.
 /* generic modal */
 function closeModal(){ document.querySelectorAll(".mo-overlay").forEach(o=>o.remove()); }
 const CHANGELOG=[
+ {v:"2026.11.04.3",date:"2026-11-04",notes:["iPad status bar: when opened from the Home Screen icon, the strip behind the clock and battery is now solid dark blue (like the header), so the page no longer shows blurred underneath it."]},
  {v:"2026.11.04.2",date:"2026-11-04",notes:["iPad status bar: a little more space above the header when opened from the Home Screen icon."]},
  {v:"2026.11.04.1",date:"2026-11-04",notes:["iPad status bar: the app now starts below the status bar (clock / Wi-Fi / battery) instead of underneath it, so the header is no longer covered on newer iPadOS versions. If the top still looks covered, delete the Home Screen icon and add it again once."]},
  {v:"2026.11.03.3",date:"2026-11-03",notes:["Duplicate check: before Submit to Data Store, the app looks on this iPad and in the data store for an earlier record for the same pilot, module, date and Module Attempt Status. If one exists, Submit stops and shows it. To fix a wrong record, submit a correction with a reason — the new record replaces the earlier one in the dashboard and the FAA data export (both stay on file)."]},
@@ -4059,6 +4060,6 @@ body .crewwrap>.swapbtn{padding:6px 8px !important}
 })();
 </script>
 
-<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}@media (display-mode: standalone){body{padding-top:calc(env(safe-area-inset-top,0px) + 14px) !important}}</style>
+<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa body{padding-top:calc(max(env(safe-area-inset-top,0px),24px) + 8px) !important}html.aqp-pwa body::before{content:"";position:fixed;left:0;right:0;top:0;height:max(env(safe-area-inset-top,0px),24px);background:#0b1428;z-index:2147483000;pointer-events:none}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
 </body>
 </html>
