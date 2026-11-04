@@ -511,8 +511,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
 <script>
 "use strict";
-const VERSION="2026.11.04.1", VERSION_DATE="2026-11-04";
+const VERSION="2026.11.04.2", VERSION_DATE="2026-11-04";
 const CHANGELOG=[
+ {v:"2026.11.04.2",date:"2026-11-04",notes:["iPad status bar: a little more space above the header when opened from the Home Screen icon."]},
  {v:"2026.11.04.1",date:"2026-11-04",notes:["iPad status bar: the app now starts below the status bar (clock / Wi-Fi / battery) instead of underneath it, so the header is no longer covered on newer iPadOS versions. If the top still looks covered, delete the Home Screen icon and add it again once."]},
  {v:"2026.11.03.1",date:"2026-11-03",notes:["Duplicate check: before Submit to Data Store, the app looks on this iPad and in the data store for an earlier record for the same pilot, module, date and Module Attempt Status. If one exists, Submit stops and shows it. To fix a wrong record, submit a correction with a reason — the new record replaces the earlier one in the dashboard and the FAA data export (both stay on file)."]},
  {v:"2026.10.30.1",date:"2026-10-30",notes:["Updated to the 2026-10-25 CQLC paper grader: new ‘Course Evaluation’ briefing item (Training Course Evaluation survey by QR code, category Line Check); an Incomplete line check is now rescheduled per AQPM 4.3.7; the footer now reads ‘AQPM 4.3, Atlas Air FOM, and the I/E AQP Manual, or FOTM as applicable’."]},
@@ -1138,5 +1139,5 @@ render();
 })();
 </script>
 
-<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}</style>
+<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}@media (display-mode: standalone){body{padding-top:calc(env(safe-area-inset-top,0px) + 14px) !important}}</style>
 </body></html>
