@@ -511,8 +511,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
 <script>
 "use strict";
-const VERSION="2026.11.04.6", VERSION_DATE="2026-11-04";
+const VERSION="2026.11.04.7", VERSION_DATE="2026-11-04";
 const CHANGELOG=[
+ {v:"2026.11.04.7",date:"2026-11-04",notes:["iPad Home Screen app: the page now scrolls below the status-bar strip (like the Test Group apps) \u2014 the RUN 1 / RUN 2 bar stays in view below it, and pop-ups such as the lesson guide open below it so their close X is reachable."]},
  {v:"2026.11.04.6",date:"2026-11-04",notes:["iPad status bar: back to the solid strip behind the clock (same as the Test Group apps)."]},
  {v:"2026.11.04.5",date:"2026-11-04",notes:["iPad status bar: the strip behind the clock is now see-through (frosted), so the page shows through it when you scroll."]},
  {v:"2026.11.04.4",date:"2026-11-04",notes:["iPad status bar: the strip behind the clock is now the page colour and tall enough to cover the iPad's frosted-glass area, so nothing shows blurred under it when you scroll."]},
@@ -640,7 +641,7 @@ function render(){
   const tb=document.getElementById("tabs"); tb.innerHTML="";
   TABS.forEach(([k,l])=>{ const b=document.createElement("div"); b.className="tab"+(TAB===k?" on":""); b.textContent=l;
     if(k==="results"){ const n=gradedMembers().reduce((a,m)=>a+needComments(m.k).length,0); if(n) b.innerHTML+=`<span class="bad">${n}</span>`; }
-    b.onclick=()=>{TAB=k; render(); window.scrollTo(0,0);}; tb.appendChild(b); });
+    b.onclick=()=>{TAB=k; render(); window.scrollTo(0,0); document.body.scrollTop=0;}; tb.appendChild(b); });
   const v=document.getElementById("view"); v.innerHTML="";
   ({brief:vBrief,crew:vCrew,grade:vGrade,results:vResults,aims:vAims})[TAB](v);
   if(window.updateLockUI) window.updateLockUI();
@@ -1143,5 +1144,5 @@ render();
 })();
 </script>
 
-<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa body{padding-top:calc(calc(max(env(safe-area-inset-top,0px),24px) + 30px) + 6px) !important}html.aqp-pwa body::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(max(env(safe-area-inset-top,0px),24px) + 30px);background:#eef2f6;border-bottom:1px solid rgba(20,40,70,.10);z-index:2147483000;pointer-events:none}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
+<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa{background:#eef2f6;height:100%;overflow:hidden}html.aqp-pwa body{position:fixed !important;left:0;right:0;bottom:0;top:calc(max(env(safe-area-inset-top,0px),24px) + 30px);margin:0;padding-top:0 !important;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-top:1px solid rgba(20,40,70,.10)}html.aqp-pwa .gp-overlay,html.aqp-pwa .lg-overlay,html.aqp-pwa .cv-overlay,html.aqp-pwa .mo-overlay,html.aqp-pwa .help-ov,html.aqp-pwa .bp-ov,html.aqp-pwa .bp-pres,html.aqp-pwa .dg-ov,html.aqp-pwa .modalbg{top:calc(max(env(safe-area-inset-top,0px),24px) + 30px) !important}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
 </body></html>

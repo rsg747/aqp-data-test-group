@@ -538,7 +538,7 @@ function init(){
   el("fSample").addEventListener("change",e=>{S.sample=e.target.checked;render();});
   el("showIds").addEventListener("change",e=>{S.showIds=e.target.checked;render();});
   el("itemTbl").querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ const k=th.dataset.s; if(!k)return; if(S.sortItem===k)S.sortDir*=-1; else {S.sortItem=k;S.sortDir=(k==="code"||k==="name"||k==="worst")?1:-1;} render(); }));
-  el("itemBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-code]"); if(!tr)return; S.item=tr.dataset.code; el("fItem").value=S.item; render(); window.scrollTo({top:0,behavior:"smooth"}); });
+  el("itemBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-code]"); if(!tr)return; S.item=tr.dataset.code; el("fItem").value=S.item; render(); window.scrollTo({top:0,behavior:"smooth"}); try{document.body.scrollTo({top:0,behavior:"smooth"});}catch(e){} });
   el("faaBtn").addEventListener("click",produceFAAPPDB);
   el("ssBtn").addEventListener("click",produceSSReport);
   el("reloadBtn").addEventListener("click",function(){ pullCloud().then(function(){ alert(CLOUD.length+" synced submission"+(CLOUD.length===1?"":"s")+" in the shared store."); }); });
@@ -602,6 +602,6 @@ init();
 })();
 </script>
 
-<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa body{padding-top:calc(calc(max(env(safe-area-inset-top,0px),24px) + 30px) + 6px) !important}html.aqp-pwa body::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(max(env(safe-area-inset-top,0px),24px) + 30px);background:#f5f6f9;border-bottom:1px solid rgba(20,40,70,.10);z-index:2147483000;pointer-events:none}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
+<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa{background:#f5f6f9;height:100%;overflow:hidden}html.aqp-pwa body{position:fixed !important;left:0;right:0;bottom:0;top:calc(max(env(safe-area-inset-top,0px),24px) + 30px);margin:0;padding-top:0 !important;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-top:1px solid rgba(20,40,70,.10)}html.aqp-pwa .gp-overlay,html.aqp-pwa .lg-overlay,html.aqp-pwa .cv-overlay,html.aqp-pwa .mo-overlay,html.aqp-pwa .help-ov,html.aqp-pwa .bp-ov,html.aqp-pwa .bp-pres,html.aqp-pwa .dg-ov,html.aqp-pwa .modalbg{top:calc(max(env(safe-area-inset-top,0px),24px) + 30px) !important}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
 </body>
 </html>
