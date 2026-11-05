@@ -1302,7 +1302,7 @@ const SCEN = {
    ===================================================================== */
 const GRADES = ["5","4","3","2","2-RP","2-RF","1","1-RP","1-RF","N/A"];
 const BELOW = new Set(["3","2","2-RP","2-RF","1","1-RP","1-RF"]);
-const VERSION = "2026.11.04.7";
+const VERSION = "2026.11.04.8";
 const VERSION_DATE = "2026-11-04";
 const DIMS = [["H","Handling"],["SOP","SOP"],["A","Automation"],["CRM","CRM"]];
 const DIMNM = {H:"Handling",SOP:"SOP",A:"Automation",CRM:"CRM"};
@@ -2291,6 +2291,7 @@ function swapCrew(){
 }
 function checkUpdates(){ try{ if(window.top && window.top!==window){ window.top.location.reload(); return; } }catch(e){} try{ location.replace(location.pathname+"?v="+Date.now()); }catch(e){ location.reload(); } }
 const CHANGELOG=[
+ {v:"2026.11.04.8",date:"2026-11-04",notes:["iPad Home Screen app: status-bar strip one-third shorter, so the page starts higher."]},
  {v:"2026.11.04.7",date:"2026-11-04",notes:["iPad Home Screen app: the page now scrolls below the status-bar strip (like the Test Group apps) \u2014 the RUN 1 / RUN 2 bar stays in view below it, and pop-ups such as the lesson guide open below it so their close X is reachable."]},
  {v:"2026.11.04.6",date:"2026-11-04",notes:["iPad status bar: back to the solid strip behind the clock (same as the Test Group apps)."]},
  {v:"2026.11.04.5",date:"2026-11-04",notes:["iPad status bar: the strip behind the clock is now see-through (frosted), so the page shows through it when you scroll."]},
@@ -2976,6 +2977,6 @@ window.BRIEF_DONE_HOOK=function(deck){
 })();
 </script>
 
-<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa{background:#eef1f5;height:100%;overflow:hidden}html.aqp-pwa body{position:fixed !important;left:0;right:0;bottom:0;top:calc(max(env(safe-area-inset-top,0px),24px) + 30px);margin:0;padding-top:0 !important;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-top:1px solid rgba(20,40,70,.10)}html.aqp-pwa .gp-overlay,html.aqp-pwa .lg-overlay,html.aqp-pwa .cv-overlay,html.aqp-pwa .mo-overlay,html.aqp-pwa .help-ov,html.aqp-pwa .bp-ov,html.aqp-pwa .bp-pres,html.aqp-pwa .dg-ov,html.aqp-pwa .modalbg{top:calc(max(env(safe-area-inset-top,0px),24px) + 30px) !important}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
+<style id="sbfix">html{background:#0b1428}body{padding-top:env(safe-area-inset-top,0px) !important}html.aqp-pwa{background:#eef1f5;height:100%;overflow:hidden}html.aqp-pwa body{position:fixed !important;left:0;right:0;bottom:0;top:calc((max(env(safe-area-inset-top,0px),24px) + 30px) * 0.667);margin:0;padding-top:0 !important;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-top:1px solid rgba(20,40,70,.10)}html.aqp-pwa .gp-overlay,html.aqp-pwa .lg-overlay,html.aqp-pwa .cv-overlay,html.aqp-pwa .mo-overlay,html.aqp-pwa .help-ov,html.aqp-pwa .bp-ov,html.aqp-pwa .bp-pres,html.aqp-pwa .dg-ov,html.aqp-pwa .modalbg{top:calc((max(env(safe-area-inset-top,0px),24px) + 30px) * 0.667) !important}</style><script>(function(){try{if(navigator.standalone||matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)document.documentElement.classList.add("aqp-pwa");}catch(e){}})();</script>
 </body>
 </html>
